@@ -1,2 +1,11 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // singleton test
+        var gameWorld = GameWorld.Instance;
+        gameWorld.DisplayWorldInfo();
+    }
+}

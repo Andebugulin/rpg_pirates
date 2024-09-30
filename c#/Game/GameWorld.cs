@@ -21,8 +21,8 @@ namespace Game
                 // If empty, return a NxN water tile
                 return new char[,]
                 {
-                    {'~'},
-                   
+                    {' ', '~'},
+                    {' ', ' '},
                 };
             }
 
@@ -37,7 +37,8 @@ namespace Game
             // Default water tile
             return new char[,]
             {
-                    {'~'},
+                    {' ', '~'},
+                {' ', ' '},
                    
                 };
         }
@@ -50,7 +51,7 @@ namespace Game
         private Random rng;
 
         private List<Entity> entities; 
-        public PlayerShip playerShip; // Main player ship
+        public Ship playerShip;
 
         private static GameWorld _instance; // Singleton instance
 
@@ -58,8 +59,8 @@ namespace Game
 
         private GameWorld()
         {
-            width = 40; 
-            height = 15; 
+            width = 40;
+            height = 15;
             rng = new Random();
 
             TimeOfDay = "Day";
@@ -74,17 +75,17 @@ namespace Game
             entities = new List<Entity>();
 
             // Initialize player ship
-            playerShip = new PlayerShip("Black Pearl", Utils.GetRandomPosition(width, height));
+            playerShip = ShipFactory.CreateShip("Galleon", "Black Pearl", Utils.GetRandomPosition(width, height));
             AddEntity(playerShip);
 
             // Initialize enemy ships
-            AddEntity(new Ship("Spanish Galleon", Utils.GetRandomPosition(width, height)));
-            AddEntity(new Ship("French Frigate", Utils.GetRandomPosition(width, height)));
-            AddEntity(new Ship("English Man-O-War", Utils.GetRandomPosition(width, height)));
+            AddEntity(ShipFactory.CreateShip("Galleon", "Spanish Galleon", Utils.GetRandomPosition(width, height)));
+            AddEntity(ShipFactory.CreateShip("Frigate", "French Frigate", Utils.GetRandomPosition(width, height)));
+            AddEntity(ShipFactory.CreateShip("ManO'War", "English Man-O-War", Utils.GetRandomPosition(width, height)));
 
             // Initialize locations
-            AddEntity(new Location("Port Royal", Utils.GetRandomPosition(width, height)));
-            AddEntity(new Location("Tortuga", Utils.GetRandomPosition(width, height)));
+            AddEntity(LocationFactory.CreateLocation("Port", "Port Royal", Utils.GetRandomPosition(width, height)));
+            AddEntity(LocationFactory.CreateLocation("Island", "Tortuga", Utils.GetRandomPosition(width, height)));
         }
 
         public static GameWorld Instance
@@ -105,14 +106,16 @@ namespace Game
         // Adds an entity to the game world and places it on the grid
         public void AddEntity(Entity entity)
         {
-            entities.Add(entity);
             if (IsWithinBounds(entity.Position))
             {
+                entities.Add(entity);
                 grid[entity.Position.X, entity.Position.Y].Entities.Add(entity);
             }
             else
             {
                 Console.WriteLine($"Entity {entity.Name} position out of bounds.");
+                entity.Position = Utils.GetRandomPosition(width, height); // Reposition entity within bounds
+                AddEntity(entity); // Re-add with valid position
             }
         }
 
@@ -129,13 +132,13 @@ namespace Game
             for (int y = 0; y < height; y++)
             {
                 // For each cell row, print 3 rows of NxN tiles
-                for (int row = 0; row < 1; row++) // Each NxN cell has N rows
+                for (int row = 0; row < 2; row++) // Each NxN cell has N rows
                 {
                     for (int x = 0; x < width; x++)
                     {
                         // Get the NxN tile for the current cell
                         char[,] tile = grid[x, y].GetDisplayTile();
-                        for (int col = 0; col < 1; col++) // Each NxN cell has N columns
+                        for (int col = 0; col < 2; col++) // Each NxN cell has N columns
                         {
                             Console.Write(tile[row, col]);
                         }

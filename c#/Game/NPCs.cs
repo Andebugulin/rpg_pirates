@@ -11,6 +11,7 @@ namespace Game
         {
             Health = health;
             Strength = strength;
+            items = new Item[3];
         }
 
         public override char[,] GetDisplayTile()

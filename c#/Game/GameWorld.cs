@@ -86,6 +86,26 @@ namespace Game
             // Initialize locations
             AddEntity(LocationFactory.CreateLocation("Port", "Port Royal", Utils.GetRandomPosition(width, height)));
             AddEntity(LocationFactory.CreateLocation("Island", "Tortuga", Utils.GetRandomPosition(width, height)));
+
+
+            ItemFactory commonFactory = new CommonItemFactory();
+            ItemFactory rareFactory = new RareItemFactory();
+            ItemFactory mythicalFactory = new MythicalItemFactory();
+
+            // Common Items
+            Weapon commonWeapon = commonFactory.CreateWeapon();
+            TreasureMap commonMap = commonFactory.CreateTreasureMap();
+            Relic commonRelic = commonFactory.CreateRelic();
+
+            // Rare Items
+            Weapon rareWeapon = rareFactory.CreateWeapon();
+            TreasureMap rareMap = rareFactory.CreateTreasureMap();
+            Relic rareRelic = rareFactory.CreateRelic();
+
+            // Mythical Items
+            Weapon mythicalWeapon = mythicalFactory.CreateWeapon();
+            TreasureMap mythicalMap = mythicalFactory.CreateTreasureMap();
+            Relic mythicalRelic = mythicalFactory.CreateRelic();
         }
 
         public static GameWorld Instance

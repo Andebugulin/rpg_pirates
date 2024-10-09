@@ -17,6 +17,7 @@ namespace Game
         public string Name { get; set; }
         public Position Position { get; set; }
         public EntityType Type { get; set; }
+        public Item[] items;
 
         public Entity(string name, Position position, EntityType type)
         {
@@ -37,6 +38,7 @@ namespace Game
             : base(name, position, EntityType.Location) 
         {
             Significance = significance;
+            items = new Item[7];
         }
 
         public override char[,] GetDisplayTile()
@@ -60,6 +62,7 @@ namespace Game
         {
             Health = health;
             AttackPower = attackPower;
+            items = new Item[5];
         }
 
         public override char[,] GetDisplayTile()

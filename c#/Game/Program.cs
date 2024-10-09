@@ -25,6 +25,18 @@ namespace Game
                 // Handle input
                 switch (char.ToUpper(input))
                 {
+                    case 'K': // Move up
+                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X, game.playerShip.Position.Y - 1));
+                        break;
+                    case 'J': // Move down
+                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X, game.playerShip.Position.Y + 1));
+                        break;
+                    case 'H': // Move left
+                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X - 1, game.playerShip.Position.Y));
+                        break;
+                    case 'L': // Move right
+                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X + 1, game.playerShip.Position.Y));
+                        break;
                     case 'Q': // Quit the game
                         isRunning = false;
                         break;

@@ -72,7 +72,7 @@ namespace Game
                 for (int y = 0; y < height; y++)
                     grid[x, y] = new Cell();
 
-            entities = new List<Entity>();
+            entities = new List<Entity>(); 
 
             // Initialize player ship
             playerShip = ShipFactory.CreateShip("Galleon", "Black Pearl", Utils.GetRandomPosition(width, height));

@@ -5,13 +5,32 @@ namespace Game
     {
         public int Health { get; set; }
         public int Strength { get; set; }
+        public List<Item> Items { get; set; }
 
         public Character(string name, Position position, int health, int strength)
             : base(name, position, EntityType.Character) 
         {
             Health = health;
             Strength = strength;
-            items = new Item[3];
+            Items = new List<Item>();
+        }
+        public void AddItem(Item item)
+        {
+            Items.Add(item);
+        }
+
+        public void RemoveItem(Item item)
+        {
+            Items.Remove(item);
+        }
+
+        public void ShowItems()
+        {
+            Console.WriteLine($"{Name}'s Items:");
+            foreach (var item in Items)
+            {
+                Console.WriteLine($"- {item.Name}");
+            }
         }
 
         public override char[,] GetDisplayTile()

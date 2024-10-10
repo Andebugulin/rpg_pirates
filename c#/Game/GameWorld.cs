@@ -74,38 +74,85 @@ namespace Game
 
             entities = new List<Entity>(); 
 
+            // Example positions for entities
+            Position portRoyalPosition = new Position(10, 5);
+            Position tortugaPosition = new Position(15, 9);
+            Position blackPearlPosition = new Position(20, 8);
+            Position dutchmanPosition = new Position(25, 12);
+            Position crewPosition1 = new Position(20, 8);
+            Position crewPosition2 = new Position(21, 9);
+
+            // Factories for Items
+            CommonItemFactory commonFactory = new CommonItemFactory();
+            RareItemFactory rareFactory = new RareItemFactory();
+            MythicalItemFactory mythicalFactory = new MythicalItemFactory();
+
+            // Create Locations using LocationFactory
+            Location portRoyal = LocationFactory.CreateLocation("Port", "Port Royal", portRoyalPosition);
+            Location tortuga = LocationFactory.CreateLocation("Island", "Tortuga", tortugaPosition);
+
+            // Create Characters using CharacterFactory
+            Character merchantJohn = CharacterFactory.CreateCharacter("Civilian", "Merchant John", Utils.GetRandomPosition(width, height));
+            Character soldierJames = CharacterFactory.CreateCharacter("EnglishSoldier", "Soldier James",Utils.GetRandomPosition(width, height));
+            Character pirateJack = CharacterFactory.CreateCharacter("Pirate", "Pirate Jack", Utils.GetRandomPosition(width, height));
+            Character innkeeperMaria = CharacterFactory.CreateCharacter("Civilian", "Innkeeper Maria", Utils.GetRandomPosition(width, height));
+
+            // Add characters to locations
+            portRoyal.AddPerson(merchantJohn);
+            portRoyal.AddPerson(soldierJames);
+            tortuga.AddPerson(pirateJack);
+            tortuga.AddPerson(innkeeperMaria);
+
+            // Add items to locations
+            portRoyal.AddItemToLocation(commonFactory.CreateWeapon());
+            portRoyal.AddItemToLocation(rareFactory.CreateRelic());
+            tortuga.AddItemToLocation(mythicalFactory.CreateTreasureMap());
+            tortuga.AddItemToLocation(commonFactory.CreateRelic());
+
+            // Create Ships using ShipFactory
+            Ship blackPearl = ShipFactory.CreateShip("Galleon", "Black Pearl", blackPearlPosition);
+            Ship flyingDutchman = ShipFactory.CreateShip("ManO'War", "Flying Dutchman", dutchmanPosition);
+
+            // Create Characters for Ships
+            Character captainJack = CharacterFactory.CreateCharacter("Pirate", "Captain Jack Sparrow", crewPosition1);
+            Character crewMember1 = CharacterFactory.CreateCharacter("Pirate", "Crewman Gibbs", crewPosition2);
+            Character davyJones = CharacterFactory.CreateCharacter("Pirate", "Davy Jones", Utils.GetRandomPosition(width, height));
+            Character bootstrapBill = CharacterFactory.CreateCharacter("Pirate", "Bootstrap Bill", Utils.GetRandomPosition(width, height));
+
+            // Add crew to ships
+            blackPearl.AddCrewMember(captainJack);
+            blackPearl.AddCrewMember(crewMember1);
+            flyingDutchman.AddCrewMember(davyJones);
+            flyingDutchman.AddCrewMember(bootstrapBill);
+
+            // Add items to ships
+            blackPearl.AddItemToShip(rareFactory.CreateWeapon());
+            blackPearl.AddItemToShip(mythicalFactory.CreateRelic());
+            flyingDutchman.AddItemToShip(mythicalFactory.CreateWeapon());
+            flyingDutchman.AddItemToShip(rareFactory.CreateTreasureMap());
+
+            // Display information for all locations and ships
+            Console.WriteLine("Locations:");
+            portRoyal.ShowPeople();
+            portRoyal.ShowLocationItems();
+            tortuga.ShowPeople();
+            tortuga.ShowLocationItems();
+
+            Console.WriteLine("\nShips:");
+            blackPearl.ShowCrew();
+            blackPearl.ShowShipItems();
+            flyingDutchman.ShowCrew();
+            flyingDutchman.ShowShipItems();
             // Initialize player ship
-            playerShip = ShipFactory.CreateShip("Galleon", "Black Pearl", Utils.GetRandomPosition(width, height));
-            AddEntity(playerShip);
+            playerShip = blackPearl;
+            AddEntity(playerShip); 
 
             // Initialize enemy ships
-            AddEntity(ShipFactory.CreateShip("Galleon", "Spanish Galleon", Utils.GetRandomPosition(width, height)));
-            AddEntity(ShipFactory.CreateShip("Frigate", "French Frigate", Utils.GetRandomPosition(width, height)));
-            AddEntity(ShipFactory.CreateShip("ManO'War", "English Man-O-War", Utils.GetRandomPosition(width, height)));
+            AddEntity(flyingDutchman);
 
             // Initialize locations
-            AddEntity(LocationFactory.CreateLocation("Port", "Port Royal", Utils.GetRandomPosition(width, height)));
-            AddEntity(LocationFactory.CreateLocation("Island", "Tortuga", Utils.GetRandomPosition(width, height)));
-
-
-            ItemFactory commonFactory = new CommonItemFactory();
-            ItemFactory rareFactory = new RareItemFactory();
-            ItemFactory mythicalFactory = new MythicalItemFactory();
-
-            // Common Items
-            Weapon commonWeapon = commonFactory.CreateWeapon();
-            TreasureMap commonMap = commonFactory.CreateTreasureMap();
-            Relic commonRelic = commonFactory.CreateRelic();
-
-            // Rare Items
-            Weapon rareWeapon = rareFactory.CreateWeapon();
-            TreasureMap rareMap = rareFactory.CreateTreasureMap();
-            Relic rareRelic = rareFactory.CreateRelic();
-
-            // Mythical Items
-            Weapon mythicalWeapon = mythicalFactory.CreateWeapon();
-            TreasureMap mythicalMap = mythicalFactory.CreateTreasureMap();
-            Relic mythicalRelic = mythicalFactory.CreateRelic();
+            AddEntity(tortuga);
+            AddEntity(portRoyal);
         }
 
         public static GameWorld Instance

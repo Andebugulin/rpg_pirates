@@ -50,7 +50,7 @@ namespace Game
         private int height;
         private Random rng;
 
-        private List<Entity> entities; 
+        public List<Entity> entities; 
         public Ship playerShip;
 
         private static GameWorld _instance; // Singleton instance
@@ -169,6 +169,17 @@ namespace Game
 
         public string TimeOfDay { get; set; }
         public string Weather { get; set; }
+
+        public bool CheckShipCollision(Ship ship1, Ship ship2)
+        {
+            return ship1.Position.X == ship2.Position.X && ship1.Position.Y == ship2.Position.Y;
+        }
+
+        public void InitiateCrewCombat(Ship ship1, Ship ship2)
+        {
+            CrewCombatScene combatScene = new CrewCombatScene(ship1, ship2);
+            combatScene.StartCombat();
+        }
 
         // Adds an entity to the game world and places it on the grid
         public void AddEntity(Entity entity)

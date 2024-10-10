@@ -6,50 +6,56 @@ namespace Game
     {
         static void Main(string[] args)
         {
-            // Initialize the game world (Singleton pattern)
             GameWorld game = GameWorld.Instance;
-
-            // Continuously display the map and allow player to interact
             bool isRunning = true;
 
             while (isRunning)
             {
                 game.DisplayMap();
-
-
                 Console.WriteLine("Move the player ship (WASD) or press Q to quit:");
 
-                // Get user input for movement
                 char input = Console.ReadKey().KeyChar;
+                Position newPosition = game.playerShip.Position;
 
-                // Handle input
                 switch (char.ToUpper(input))
                 {
-                    case 'K': // Move up
-                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X, game.playerShip.Position.Y - 1));
+                    case 'K':
+                        newPosition = new Position(game.playerShip.Position.X, game.playerShip.Position.Y - 1);
                         break;
-                    case 'J': // Move down
-                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X, game.playerShip.Position.Y + 1));
+                    case 'J':
+                        newPosition = new Position(game.playerShip.Position.X, game.playerShip.Position.Y + 1);
                         break;
-                    case 'H': // Move left
-                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X - 1, game.playerShip.Position.Y));
+                    case 'H':
+                        newPosition = new Position(game.playerShip.Position.X - 1, game.playerShip.Position.Y);
                         break;
-                    case 'L': // Move right
-                        game.MoveEntity(game.playerShip, new Position(game.playerShip.Position.X + 1, game.playerShip.Position.Y));
+                    case 'L':
+                        newPosition = new Position(game.playerShip.Position.X + 1, game.playerShip.Position.Y);
                         break;
-                    case 'Q': // Quit the game
+                    case 'Q':
                         isRunning = false;
-                        break;
-                    default:
-                        Console.WriteLine("Invalid input, use W/A/S/D to move or Q to quit.");
-                        break;
+                        continue;
                 }
 
-                // Clear the screen for the next update
+                // Check for potential collisions before moving
+                Ship collidedShip = game.entities
+                    .OfType<Ship>()
+                    .FirstOrDefault(s => s != game.playerShip && 
+                                        s.Position.X == newPosition.X && 
+                                        s.Position.Y == newPosition.Y);
+
+                if (collidedShip != null)
+                {
+                    game.InitiateCrewCombat(game.playerShip, collidedShip);
+                }
+                else
+                {
+                    game.MoveEntity(game.playerShip, newPosition);
+                }
+
                 Console.Clear();
             }
 
-            Console.WriteLine("Thanks for playing!");
+        Console.WriteLine("Thanks for playing!");
         }
     }
 }

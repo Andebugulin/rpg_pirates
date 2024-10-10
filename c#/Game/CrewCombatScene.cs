@@ -44,25 +44,152 @@ namespace Game
             playerCharacter = ship1.Crew[0];
         }
 
-        public void StartCombat()
-        {
-            bool combatOngoing = true;
+         public void StartCombat()
+    {
+        bool combatOngoing = true;
 
-            while (combatOngoing)
+        while (combatOngoing)
+        {
+            RenderCombatScene();
+            HandlePlayerInput();
+            UpdateCharacterStates();
+            
+            if (ship1.Crew.Count == 0 || ship2.Crew.Count == 0)
             {
-                RenderCombatScene();
-                HandlePlayerInput();
-                CheckForCombat();
+                combatOngoing = false;
+            }
+        }
+
+        AnnounceCombatResult();
+    }
+
+    private void HandlePlayerInput()
+    {
+        Console.WriteLine("\nActions:");
+        Console.WriteLine("1-9: Select action strategy");
+        Console.WriteLine("HJKL: Move");
+        Console.WriteLine("SPACE: Perform current action");
+        Console.WriteLine("D: Enter defending state");
+        Console.WriteLine("Q: Quit combat");
+
+        char input = Console.ReadKey(true).KeyChar;
+        
+        if (char.IsDigit(input))
+        {
+            int index = int.Parse(input.ToString()) - 1;
+            var strategies = playerCharacter.GetAvailableStrategies();
+            if (index >= 0 && index < strategies.Count)
+            {
+                playerCharacter.SetStrategy(strategies[index]);
+                Console.WriteLine($"Switched to {strategies[index].GetActionName()}");
+            }
+            return;
+        }
+
+        switch (char.ToUpper(input))
+        {
+            case 'K':
+            case 'J':
+            case 'H':
+            case 'L':
+                HandleMovement(input);
+                break;
+            case 'D':
+                playerCharacter.SetState(new DefendingState());
+                Console.WriteLine($"{playerCharacter.Name} is now defending!");
+                break;
+            case ' ':
+                HandleAction();
+                break;
+            case 'Q':
+                ship1.Crew.Clear(); // Force end combat
+                break;
+        }
+    }
+
+    private void HandleMovement(char input)
+    {
+        Position newPosition = playerCharacter.Position;
+
+        switch (char.ToUpper(input))
+        {
+            case 'K': // Up
+                newPosition = new Position(playerCharacter.Position.X, playerCharacter.Position.Y - 1);
+                break;
+            case 'J': // Down
+                newPosition = new Position(playerCharacter.Position.X, playerCharacter.Position.Y + 1);
+                break;
+            case 'H': // Left
+                newPosition = new Position(playerCharacter.Position.X - 1, playerCharacter.Position.Y);
+                break;
+            case 'L': // Right
+                newPosition = new Position(playerCharacter.Position.X + 1, playerCharacter.Position.Y);
+                break;
+        }
+
+        if (IsValidPosition(newPosition))
+        {
+            MoveCharacter(playerCharacter, newPosition);
+            playerCharacter.SetState(new ActionState());
+        }
+    }
+
+    private void HandleAction()
+    {
+        var currentStrategy = playerCharacter.GetCurrentStrategy();
+        int actionRange = currentStrategy.GetRange();
+        
+        // Find possible targets within range
+        List<Character> possibleTargets = new List<Character>();
+        for (int x = -actionRange; x <= actionRange; x++)
+        {
+            for (int y = -actionRange; y <= actionRange; y++)
+            {
+                Position targetPos = new Position(
+                    playerCharacter.Position.X + x,
+                    playerCharacter.Position.Y + y
+                );
                 
-                // Check if combat should end
-                if (ship1.Crew.Count == 0 || ship2.Crew.Count == 0)
+                if (IsValidPosition(targetPos))
                 {
-                    combatOngoing = false;
+                    var targetChars = combatGrid[targetPos.X, targetPos.Y].Entities
+                        .OfType<Character>()
+                        .Where(c => c != playerCharacter)
+                        .ToList();
+                    possibleTargets.AddRange(targetChars);
                 }
             }
-
-            AnnounceCombatResult();
         }
+
+        if (possibleTargets.Count > 0)
+        {
+            // For simplicity, target the first available character
+            Character target = possibleTargets[0];
+            if (playerCharacter.PerformAction(target))
+            {
+                if (target.Health <= 0)
+                {
+                    RemoveDefeatedCharacter(target);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Cannot perform this action!");
+            }
+        }
+        else
+        {
+            Console.WriteLine("No targets in range!");
+        }
+    }
+
+    private void UpdateCharacterStates()
+    {
+        foreach (var crew in ship1.Crew.Concat(ship2.Crew))
+        {
+            crew.UpdateState();
+        }
+    }
 
         private void RenderCombatScene()
         {
@@ -104,36 +231,13 @@ namespace Game
             {
                 Console.WriteLine($"{crewMember.Name}: Health={crewMember.Health}");
             }
-        }
-
-        private void HandlePlayerInput()
-        {
-            char input = Console.ReadKey(true).KeyChar;
-            Position newPosition = playerCharacter.Position;
-
-            switch (char.ToUpper(input))
-            {
-                case 'K': // Up
-                    newPosition = new Position(playerCharacter.Position.X, playerCharacter.Position.Y - 1);
-                    break;
-                case 'J': // Down
-                    newPosition = new Position(playerCharacter.Position.X, playerCharacter.Position.Y + 1);
-                    break;
-                case 'H': // Left
-                    newPosition = new Position(playerCharacter.Position.X - 1, playerCharacter.Position.Y);
-                    break;
-                case 'L': // Right
-                    newPosition = new Position(playerCharacter.Position.X + 1, playerCharacter.Position.Y);
-                    break;
-                case 'Q': // Quit combat
-                    ship1.Crew.Clear(); // TODO: THIS DOESN"T WORK CORRECTLY YET, RIGHT NOW IT IS JUST DEAD OF ALL CREW 
-                    return;
-            }
-
-            if (IsValidPosition(newPosition))
-            {
-                MoveCharacter(playerCharacter, newPosition);
-            }
+            Console.WriteLine();
+            // Add display of current strategy and state
+            Console.WriteLine($"Current Action: {playerCharacter.GetCurrentStrategy().GetActionName()}");
+            Console.WriteLine($"Current State: {playerCharacter.GetCurrentState().GetStateName()}");
+            Console.WriteLine($"Stamina: {playerCharacter.Stamina}/{playerCharacter.MaxStamina}");
+            Console.WriteLine($"Magic Points: {playerCharacter.MagicPoints}/{playerCharacter.MaxMagicPoints}");
+            Console.WriteLine($"Ammunition: {playerCharacter.Ammunition}");
         }
 
         private bool IsValidPosition(Position pos)

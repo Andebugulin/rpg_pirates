@@ -1,44 +1,81 @@
 namespace Game 
 {
     // Base class for all characters
-    public abstract class Character : Entity
+   public abstract class Character : Entity
     {
         public int Health { get; set; }
+        public int MaxHealth { get; set; }
         public int Strength { get; set; }
-        public List<Item> Items { get; set; }
+        public int Stamina { get; set; }
+        public int MaxStamina { get; set; }
+        public int MagicPoints { get; set; }
+        public int MaxMagicPoints { get; set; }
+        public int Ammunition { get; set; }
+        
+        private IActionStrategy currentStrategy;
+        private ICharacterState currentState;
+        private List<IActionStrategy> availableStrategies;
 
-        public Character(string name, Position position, int health, int strength)
-            : base(name, position, EntityType.Character) 
+        public Character(string name, Position position, int health, int strength) 
+            : base(name, position, EntityType.Character)
         {
-            Health = health;
+            Health = MaxHealth = health;
             Strength = strength;
-            Items = new List<Item>();
-        }
-        public void AddItem(Item item)
-        {
-            Items.Add(item);
-        }
-
-        public void RemoveItem(Item item)
-        {
-            Items.Remove(item);
-        }
-
-        public void ShowItems()
-        {
-            Console.WriteLine($"{Name}'s Items:");
-            foreach (var item in Items)
+            Stamina = MaxStamina = 100;
+            MagicPoints = MaxMagicPoints = 50;
+            Ammunition = 10;
+            
+            availableStrategies = new List<IActionStrategy>
             {
-                Console.WriteLine($"- {item.Name}");
-            }
+                new MeleeAction(),
+                new RangedAction(),
+                new HealAction()
+            };
+            
+            currentStrategy = availableStrategies[0]; // Default to melee
+            currentState = new IdleState(); // Start in idle state
         }
 
+        public void SetStrategy(IActionStrategy strategy)
+        {
+            currentStrategy = strategy;
+            SetState(new ActionState());
+        }
+
+        public void SetState(ICharacterState state)
+        {
+            currentState = state;
+        }
+
+        public bool PerformAction(Character target)
+        {
+            if (currentStrategy.CanPerformAction(this, target))
+            {
+                currentStrategy.PerformAction(this, target);
+                return true;
+            }
+            return false;
+        }
+
+        public void UpdateState()
+        {
+            currentState.HandleState(this);
+        }
+
+        public List<IActionStrategy> GetAvailableStrategies() => availableStrategies;
+        
+        public IActionStrategy GetCurrentStrategy() => currentStrategy;
+        
+        public ICharacterState GetCurrentState() => currentState;
+        
         public override char[,] GetDisplayTile()
         {
-            return new char[,] { { 'C' } }; 
+            return new char[,]
+            {
+                {Name[0]},
+                {currentState.GetStateName()[0]}
+            };
         }
-
-        public abstract void DisplayInfo();
     }
 
     public class Civilian : Character
@@ -47,10 +84,6 @@ namespace Game
             : base(name, position, health, strength) 
         { }
 
-        public override void DisplayInfo()
-        {
-            Console.WriteLine($"Civilian {Name}: Health = {Health}, Strength = {Strength}");
-        }
     }
 
     public class SpanishSoldier : Character
@@ -59,10 +92,6 @@ namespace Game
             : base(name, position, health, strength) 
         { }
 
-        public override void DisplayInfo()
-        {
-            Console.WriteLine($"Spanish Soldier {Name}: Health = {Health}, Strength = {Strength}");
-        }
     }
 
     public class EnglishSoldier : Character
@@ -71,10 +100,6 @@ namespace Game
             : base(name, position, health, strength) 
         { }
 
-        public override void DisplayInfo()
-        {
-            Console.WriteLine($"English Soldier {Name}: Health = {Health}, Strength = {Strength}");
-        }
     }
 
     public class Pirate : Character
@@ -83,9 +108,5 @@ namespace Game
             : base(name, position, health, strength) 
         { }
 
-        public override void DisplayInfo()
-        {
-            Console.WriteLine($"Pirate {Name}: Health = {Health}, Strength = {Strength}");
-        }
     }
 }

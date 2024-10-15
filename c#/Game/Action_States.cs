@@ -1,80 +1,95 @@
 namespace Game
 {
+    // Strategy Pattern: Action Strategy Interface
     public interface IActionStrategy
     {
         void PerformAction(Character actor, Character target);
         string GetActionName();
         bool CanPerformAction(Character actor, Character target);
-        int GetRange(); // How many cells away the action can be performed
+        int GetRange();
     }
 
+   // Concrete Action Strategies
     public class MeleeAction : IActionStrategy
     {
+        private const int STAMINA_COST = 10;
         public void PerformAction(Character actor, Character target)
         {
             int damage = new Random().Next(actor.Strength / 2, actor.Strength);
-            target.Health -= damage;
-            Console.WriteLine($"{actor.Name} performs a melee attack on {target.Name} for {damage} damage!");
+            target.TakeDamage(damage);
+            actor.UseStamina(STAMINA_COST);
+            GameWorld.Instance.AddToCombatLog($"{actor.Name} strikes {target.Name} for {damage} damage!");
         }
-
         public string GetActionName() => "Melee Attack";
-        
-        public bool CanPerformAction(Character actor, Character target) => true;
-        
-        public int GetRange() => 1; // Adjacent cells only
+        public bool CanPerformAction(Character actor, Character target) 
+            => actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
+        public int GetRange() => 1;
     }
+
     public class RangedAction : IActionStrategy
     {
+        private const int STAMINA_COST = 5;
         public void PerformAction(Character actor, Character target)
         {
             int damage = new Random().Next(actor.Strength / 3, actor.Strength / 2);
-            target.Health -= damage;
-            Console.WriteLine($"{actor.Name} shoots at {target.Name} for {damage} damage!");
+            target.TakeDamage(damage);
+            actor.UseStamina(STAMINA_COST);
+            actor.UseAmmunition(1);
+            GameWorld.Instance.AddToCombatLog($"{actor.Name} shoots {target.Name} for {damage} damage!");
         }
-
         public string GetActionName() => "Ranged Attack";
-        
         public bool CanPerformAction(Character actor, Character target) 
-            => actor.Ammunition > 0;
-        
-        public int GetRange() => 3; // Can attack up to 3 cells away
+            => actor.Ammunition > 0 && actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
+        public int GetRange() => 3;
+    }
+
+    public class MagicAction : IActionStrategy
+    {
+        private const int MAGIC_COST = 15;
+        public void PerformAction(Character actor, Character target)
+        {
+            int damage = new Random().Next(actor.MagicPoints / 2, actor.MagicPoints);
+            target.TakeDamage(damage);
+            actor.UseMagicPoints(MAGIC_COST);
+            GameWorld.Instance.AddToCombatLog($"{actor.Name} casts a spell on {target.Name} for {damage} damage!");
+        }
+        public string GetActionName() => "Magic Attack";
+        public bool CanPerformAction(Character actor, Character target) 
+            => actor.MagicPoints >= MAGIC_COST && actor.IsAlive && target.IsAlive;
+        public int GetRange() => 2;
     }
 
     public class HealAction : IActionStrategy
     {
+        private const int MAGIC_COST = 10;
         public void PerformAction(Character actor, Character target)
         {
             int healAmount = new Random().Next(10, 20);
-            target.Health += healAmount;
-            Console.WriteLine($"{actor.Name} heals {target.Name} for {healAmount} health!");
+            target.Heal(healAmount);
+            actor.UseMagicPoints(MAGIC_COST);
+            GameWorld.Instance.AddToCombatLog($"{actor.Name} heals {target.Name} for {healAmount} health!");
         }
-
         public string GetActionName() => "Heal";
-        
         public bool CanPerformAction(Character actor, Character target) 
-            => actor.MagicPoints >= 10;
-        
-        public int GetRange() => 2; // Can heal up to 2 cells away
+            => actor.MagicPoints >= MAGIC_COST && actor.IsAlive && target.IsAlive && target.Health < target.MaxHealth;
+        public int GetRange() => 2;
     }
 
-    // State Pattern implementations
+     // State Pattern: Character State Interface
     public interface ICharacterState
     {
         void HandleState(Character character);
         string GetStateName();
     }
 
+   // Concrete Character States
     public class IdleState : ICharacterState
     {
         public void HandleState(Character character)
         {
-            // In idle state, character regenerates some magic points
-            if (character.MagicPoints < character.MaxMagicPoints)
-            {
-                character.MagicPoints += 1;
-            }
+            character.RegenerateMagicPoints(2);
+            character.RegenerateStamina(1);
         }
-
         public string GetStateName() => "Idle";
     }
 
@@ -82,10 +97,8 @@ namespace Game
     {
         public void HandleState(Character character)
         {
-            // In action state, character uses more stamina
-            character.Stamina -= 1;
+            // Action state now handles stamina in the actual actions
         }
-
         public string GetStateName() => "Action";
     }
 
@@ -93,13 +106,10 @@ namespace Game
     {
         public void HandleState(Character character)
         {
-            // In defending state, character regenerates stamina
-            if (character.Stamina < character.MaxStamina)
-            {
-                character.Stamina += 2;
-            }
+            character.RegenerateStamina(3);
+            character.RegenerateMagicPoints(1);
+            GameWorld.Instance.AddToCombatLog($"{character.Name} is defending. (+3 Stamina, +1 MP)");
         }
-
         public string GetStateName() => "Defending";
     }
 }

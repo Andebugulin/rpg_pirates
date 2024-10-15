@@ -1,17 +1,18 @@
 namespace Game 
 {
-    // Base class for all characters
-   public abstract class Character : Entity
+   // Updated Character class
+    public abstract class Character : Entity
     {
         public int Health { get; set; }
-        public int MaxHealth { get; set; }
-        public int Strength { get; set; }
-        public int Stamina { get; set; }
-        public int MaxStamina { get; set; }
-        public int MagicPoints { get; set; }
-        public int MaxMagicPoints { get; set; }
-        public int Ammunition { get; set; }
-        
+        public int MaxHealth { get; protected set; }
+        public int Strength { get; protected set; }
+        public int Stamina { get; protected set; }
+        public int MaxStamina { get; protected set; }
+        public int MagicPoints { get; protected set; }
+        public int MaxMagicPoints { get; protected set; }
+        public int Ammunition { get; protected set; }
+        public bool IsAlive => Health > 0;
+
         private IActionStrategy currentStrategy;
         private ICharacterState currentState;
         private List<IActionStrategy> availableStrategies;
@@ -24,14 +25,14 @@ namespace Game
             Stamina = MaxStamina = 100;
             MagicPoints = MaxMagicPoints = 50;
             Ammunition = 10;
-            
+
             availableStrategies = new List<IActionStrategy>
             {
                 new MeleeAction(),
                 new RangedAction(),
+                new MagicAction(),
                 new HealAction()
             };
-            
             currentStrategy = availableStrategies[0]; // Default to melee
             currentState = new IdleState(); // Start in idle state
         }
@@ -63,16 +64,60 @@ namespace Game
         }
 
         public List<IActionStrategy> GetAvailableStrategies() => availableStrategies;
-        
         public IActionStrategy GetCurrentStrategy() => currentStrategy;
-        
         public ICharacterState GetCurrentState() => currentState;
-        
+
+        public void TakeDamage(int amount)
+        {
+            Health = Math.Max(0, Health - amount);
+            if (Health == 0)
+            {
+                Die();
+            }
+        }
+
+        public void Heal(int amount)
+        {
+            Health = Math.Min(MaxHealth, Health + amount);
+        }
+
+        public void UseStamina(int amount)
+        {
+            Stamina = Math.Max(0, Stamina - amount);
+        }
+
+        public void UseMagicPoints(int amount)
+        {
+            MagicPoints = Math.Max(0, MagicPoints - amount);
+        }
+
+        public void UseAmmunition(int amount)
+        {
+            Ammunition = Math.Max(0, Ammunition - amount);
+        }
+
+        public void RegenerateStamina(int amount)
+        {
+            Stamina = Math.Min(MaxStamina, Stamina + amount);
+        }
+
+        public void RegenerateMagicPoints(int amount)
+        {
+            MagicPoints = Math.Min(MaxMagicPoints, MagicPoints + amount);
+        }
+
+        private void Die()
+        {
+            GameWorld.Instance.AddToCombatLog($"{Name} has been defeated!");
+            // Remove from the game world
+            GameWorld.Instance.RemoveEntity(this);
+        }
+
         public override char[,] GetDisplayTile()
         {
             return new char[,]
             {
-                {Name[0]},
+                {IsAlive ? Name[0] : 'X'},
                 {currentState.GetStateName()[0]}
             };
         }

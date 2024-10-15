@@ -46,22 +46,21 @@ namespace Game
 
     public class GameWorld
     {
-        private int width;
-        private int height;
-        private Random rng;
-
+        public int width;
+        public int height;
         public List<Entity> entities; 
         public Ship playerShip;
 
         private static GameWorld _instance; // Singleton instance
 
         private Cell[,] grid; // Grid of cells
+        public Queue<string> combatLog = new Queue<string>();
+        public const int MAX_LOG_ENTRIES = 5;
 
         private GameWorld()
         {
             width = 40;
             height = 15;
-            rng = new Random();
 
             TimeOfDay = "Day";
             Weather = "Clear";
@@ -256,6 +255,26 @@ namespace Game
 
             // Add to new cell
             grid[newPosition.X, newPosition.Y].Entities.Add(entity);
+        }
+        public void RemoveEntity(Entity entity)
+        {
+            entities.Remove(entity);
+            grid[entity.Position.X, entity.Position.Y].Entities.Remove(entity);
+            
+            // If it's a character in a ship's crew, remove it from there too
+            foreach (var ship in entities.OfType<Ship>())
+            {
+                ship.Crew.Remove(entity as Character);
+            }
+        }
+
+        public void AddToCombatLog(string message)
+        {
+            combatLog.Enqueue(message);
+            if (combatLog.Count > MAX_LOG_ENTRIES)
+            {
+                combatLog.Dequeue();
+            }
         }
     }
 }

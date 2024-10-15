@@ -8,11 +8,24 @@ namespace Game
         {
             GameWorld game = GameWorld.Instance;
             bool isRunning = true;
+            
+            // Create AI for each enemy ship
+            List<ShipAI> shipAIs = game.entities
+                .OfType<Ship>()
+                .Where(s => s != game.playerShip)
+                .Select(s => new ShipAI(s))
+                .ToList();
 
             while (isRunning)
             {
                 game.DisplayMap();
                 Console.WriteLine("Move the player ship (WASD) or press Q to quit:");
+
+                // Update all ship AIs
+                foreach (var ai in shipAIs)
+                {
+                    ai.UpdateBehavior(game);
+                }
 
                 char input = Console.ReadKey().KeyChar;
                 Position newPosition = game.playerShip.Position;

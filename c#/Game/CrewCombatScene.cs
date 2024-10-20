@@ -56,7 +56,7 @@ namespace Game
 
             PlaceCrewOnGrid(_ship1.Crew, 1);
             PlaceCrewOnGrid(_ship2.Crew, CombatGridWidth - SpaceBetweenCrews);
-            
+
             _playerCharacter = _ship1.Crew[0];
         }
 

@@ -9,7 +9,6 @@ namespace Game
             GameWorld game = GameWorld.Instance;
             bool isRunning = true;
             
-            // Create AI for each enemy ship
             List<ShipAI> shipAIs = game.entities
                 .OfType<Ship>()
                 .Where(s => s != game.playerShip)
@@ -20,8 +19,7 @@ namespace Game
             {
                 game.DisplayMap();
                 Console.WriteLine("Move the player ship (WASD) or press Q to quit:");
-
-                // Update all ship AIs
+                
                 foreach (var ai in shipAIs)
                 {
                     ai.UpdateBehavior(game);
@@ -32,33 +30,31 @@ namespace Game
 
                 switch (char.ToUpper(input))
                 {
-                    case 'K':
-                        newPosition = new Position(game.playerShip.Position.X, game.playerShip.Position.Y - 1);
-                        break;
-                    case 'J':
-                        newPosition = new Position(game.playerShip.Position.X, game.playerShip.Position.Y + 1);
-                        break;
-                    case 'H':
-                        newPosition = new Position(game.playerShip.Position.X - 1, game.playerShip.Position.Y);
-                        break;
-                    case 'L':
-                        newPosition = new Position(game.playerShip.Position.X + 1, game.playerShip.Position.Y);
-                        break;
-                    case 'Q':
-                        isRunning = false;
-                        continue;
+                    case 'K': newPosition = new Position(game.playerShip.Position.X, game.playerShip.Position.Y - 1); break;
+                    case 'J': newPosition = new Position(game.playerShip.Position.X, game.playerShip.Position.Y + 1); break;
+                    case 'H': newPosition = new Position(game.playerShip.Position.X - 1, game.playerShip.Position.Y); break;
+                    case 'L': newPosition = new Position(game.playerShip.Position.X + 1, game.playerShip.Position.Y); break;
+                    case 'Q': isRunning = false; continue;
                 }
 
-                // Check for potential collisions before moving
                 Ship collidedShip = game.entities
                     .OfType<Ship>()
                     .FirstOrDefault(s => s != game.playerShip && 
                                         s.Position.X == newPosition.X && 
                                         s.Position.Y == newPosition.Y);
 
+                Location collidedLocation = game.entities
+                    .OfType<Location>()
+                    .FirstOrDefault(l => l.Position.X == newPosition.X && 
+                                        l.Position.Y == newPosition.Y);
+                    
                 if (collidedShip != null)
                 {
                     game.InitiateCrewCombat(game.playerShip, collidedShip);
+                }
+                else if (collidedLocation != null)
+                {
+                    game.InitiateLocationScene(collidedLocation, game.playerShip);
                 }
                 else
                 {
@@ -68,7 +64,7 @@ namespace Game
                 Console.Clear();
             }
 
-        Console.WriteLine("Thanks for playing!");
+            Console.WriteLine("Thanks for playing!");
         }
     }
 }

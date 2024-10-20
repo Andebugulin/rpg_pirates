@@ -184,6 +184,11 @@ namespace Game
             CrewCombatScene combatScene = new CrewCombatScene(ship1, ship2);
             combatScene.StartCombat();
         }
+        public void InitiateLocationScene(Location location, Ship ship)
+        {
+            LocationScene locationScene = new LocationScene(location, ship);
+            locationScene.Start();
+        }
 
         // Adds an entity to the game world and places it on the grid
         public void AddEntity(Entity entity)

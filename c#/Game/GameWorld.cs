@@ -7,16 +7,18 @@ namespace Game
     public class Cell
     {
         public List<Entity> Entities { get; set; }
+        public List<Item> Items { get; set; }
 
         public Cell()
         {
             Entities = new List<Entity>();
+            Items = new List<Item>();
         }
 
         // Gets the display tile for this cell
         public char[,] GetDisplayTile()
         {
-            if (Entities.Count == 0)
+            if (Entities.Count == 0 && Items.Count == 0)
             {
                 // If empty, return a NxN water tile
                 return new char[,]
@@ -34,11 +36,14 @@ namespace Game
             if (Entities.Exists(e => e.Type == EntityType.Location))
                 return Entities.Find(e => e.Type == EntityType.Location).GetDisplayTile();
 
+            if (Items.Count > 0)
+                return Items[0].GetDisplayTile();
+                
             // Default water tile
             return new char[,]
             {
                     {' ', '~'},
-                {' ', ' '},
+                    {' ', ' '},
                    
                 };
         }

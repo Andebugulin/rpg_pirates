@@ -10,6 +10,8 @@ namespace Game
         private readonly Ship _ship2;
         private readonly Cell[,] _combatGrid;
         private Character _playerCharacter;
+        private List<Item> _availableItems;
+
 
         public CrewCombatScene(Ship ship1, Ship ship2)
         {
@@ -17,11 +19,24 @@ namespace Game
             _ship2 = ship2;
             _combatGrid = new Cell[CombatGridWidth, CombatGridHeight];
             InitializeCombatGrid();
+            _availableItems = new List<Item>();
+            Console.WriteLine(1);
+            for (int i = 0; i < ship1.ShipItems.Count; i++)
+            {
+                _availableItems.Add(ship1.ShipItems[i]);
+                Console.WriteLine("i", i);
+            }
+            Console.WriteLine("23");
+            for (int i = 0; i < ship2.ShipItems.Count; i++)
+            {
+                _availableItems.Add(ship2.ShipItems[i]);
+            }
         }
 
         public void StartCombat()
         {
             bool combatOngoing = true;
+            PlaceItemsRandomly();
             while (combatOngoing)
             {
                 RenderCombatScene();
@@ -41,6 +56,8 @@ namespace Game
 
             PlaceCrewOnGrid(_ship1.Crew, 1);
             PlaceCrewOnGrid(_ship2.Crew, CombatGridWidth - SpaceBetweenCrews);
+            PlaceItemOnGrid(_ship1.ShipItems, 1);
+            PlaceItemOnGrid(_ship2.ShipItems, CombatGridWidth - SpaceBetweenCrews);
 
             _playerCharacter = _ship1.Crew[0];
         }
@@ -52,6 +69,31 @@ namespace Game
                 int y = i * 2 % CombatGridHeight;
                 crew[i].Position = new Position(xPosition, y);
                 _combatGrid[xPosition, y].Entities.Add(crew[i]);
+            }
+        }
+        private void PlaceItemOnGrid(List<Item> items, int xPosition)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                int y = i * 2 % CombatGridHeight;
+                items[i].Position = new Position(xPosition, y);
+                _combatGrid[xPosition, y].Items.Add(items[i]);
+            }
+        }
+        private void PlaceItemsRandomly()
+        {
+            Random random = new Random();
+            foreach (var item in _availableItems)
+            {
+                int x, y;
+                do
+                {
+                    x = random.Next(CombatGridWidth);
+                    y = random.Next(CombatGridHeight);
+                } while (_combatGrid[x, y].Items.Any());
+
+                item.Position = new Position(x, y);
+                _combatGrid[x, y].Items.Add(item);
             }
         }
 
@@ -86,6 +128,10 @@ namespace Game
                         char symbol = entity == _playerCharacter ? '@' : 
                                     _ship1.Crew.Contains(entity) ? 'A' : 'E';
                         Console.Write($"[{symbol}]");
+                    }
+                    else if (cell.Items.Count > 0)
+                    {
+                        Console.Write("[I]");
                     }
                     else
                     {
@@ -178,7 +224,33 @@ namespace Game
             {
                 MoveCharacter(_playerCharacter, newPosition);
                 _playerCharacter.SetState(new ActionState());
+                var itemAtPosition = _combatGrid[_playerCharacter.Position.X, _playerCharacter.Position.Y].Items.FirstOrDefault();
+                if (itemAtPosition != null)
+                {
+                    PickUpItem(_playerCharacter, itemAtPosition);
+                }
             }
+        }
+        private void PickUpItem(Character character, Item item)
+        {
+            character.AddItem(item);
+            _combatGrid[item.Position.X, item.Position.Y].Items.Remove(item);
+            _availableItems.Remove(item);
+
+            // Add corresponding strategy based on item type
+            if (item is Weapon weapon)
+            {
+                if (weapon.Type == WeaponType.Melee)
+                    character.AddStrategy(new MeleeAction());
+                else if (weapon.Type == WeaponType.Ranged)
+                    character.AddStrategy(new RangedAction());
+            }
+            else if (item is Relic)
+            {
+                character.AddStrategy(new MagicAction());
+            }
+
+            Console.WriteLine($"{character.Name} picked up {item.Name}!");
         }
 
         private Position GetNewPosition(char input)
@@ -372,7 +444,7 @@ namespace Game
         private void RemoveDefeatedCharacter(Character character)
         {
             _combatGrid[character.Position.X, character.Position.Y].Entities.Remove(character);
-
+        
             if (_ship1.Crew.Contains(character))
             {
                 _ship1.Crew.Remove(character);

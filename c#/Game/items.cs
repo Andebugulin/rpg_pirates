@@ -22,6 +22,7 @@ namespace Game
     {
         public string Name { get; set; }
         public ItemRarity Rarity { get; set; }
+        public Position Position { get; set; }
 
         public Item(string name, ItemRarity rarity)
         {
@@ -30,6 +31,7 @@ namespace Game
         }
 
         public abstract void DisplayInfo();
+        public abstract char[,] GetDisplayTile();
     }
 
     // Weapon Class
@@ -48,6 +50,13 @@ namespace Game
         public override void DisplayInfo()
         {
             Console.WriteLine($"{Rarity} {Name} (Type: {Type}, Damage: {Damage})");
+        }
+        public override char[,] GetDisplayTile()
+        {
+            return new char[,]
+            {
+                {'W'},
+            };
         }
     }
 
@@ -68,6 +77,13 @@ namespace Game
         {
             Console.WriteLine($"{Rarity} {Name} (Complexity: {LocationComplexity}, Condition: {MapCondition})");
         }
+        public override char[,] GetDisplayTile()
+        {
+            return new char[,]
+            {
+                {'M'},
+            };
+        }
     }
 
     // Relic Class
@@ -86,6 +102,13 @@ namespace Game
         public override void DisplayInfo()
         {
             Console.WriteLine($"{Rarity} {Name} (Power: {Power}, Age: {Age} years)");
+        }
+        public override char[,] GetDisplayTile()
+        {
+            return new char[,]
+            {
+                {'R'},
+            };
         }
     }
 

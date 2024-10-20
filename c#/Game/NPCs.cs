@@ -12,6 +12,7 @@ namespace Game
         public int MaxMagicPoints { get; protected set; }
         public int Ammunition { get; protected set; }
         public bool IsAlive => Health > 0;
+        public List<Item> Items { get; private set; }
 
         private IActionStrategy currentStrategy;
         private ICharacterState currentState;
@@ -24,17 +25,25 @@ namespace Game
             Strength = strength;
             Stamina = MaxStamina = 100;
             MagicPoints = MaxMagicPoints = 50;
-            Ammunition = 10;
+            Ammunition =  new Random().Next(1, 2);
+            Items = new List<Item>();
+            
 
             availableStrategies = new List<IActionStrategy>
             {
-                new MeleeAction(),
-                new RangedAction(),
-                new MagicAction(),
                 new HealAction()
             };
             currentStrategy = availableStrategies[0]; // Default to melee
             currentState = new IdleState(); // Start in idle state
+        }
+
+        public void AddItem(Item item)
+        {
+            Items.Add(item);
+        }
+        public void AddStrategy(IActionStrategy strategy)
+        {
+            availableStrategies.Add(strategy);
         }
 
         public void SetStrategy(IActionStrategy strategy)
@@ -70,7 +79,7 @@ namespace Game
         public void TakeDamage(int amount)
         {
             Health = Math.Max(0, Health - amount);
-            if (Health == 0)
+            if (Health <= 0)
             {
                 Die();
             }

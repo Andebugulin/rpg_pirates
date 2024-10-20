@@ -56,9 +56,7 @@ namespace Game
 
             PlaceCrewOnGrid(_ship1.Crew, 1);
             PlaceCrewOnGrid(_ship2.Crew, CombatGridWidth - SpaceBetweenCrews);
-            PlaceItemOnGrid(_ship1.ShipItems, 1);
-            PlaceItemOnGrid(_ship2.ShipItems, CombatGridWidth - SpaceBetweenCrews);
-
+            
             _playerCharacter = _ship1.Crew[0];
         }
 
@@ -69,15 +67,6 @@ namespace Game
                 int y = i * 2 % CombatGridHeight;
                 crew[i].Position = new Position(xPosition, y);
                 _combatGrid[xPosition, y].Entities.Add(crew[i]);
-            }
-        }
-        private void PlaceItemOnGrid(List<Item> items, int xPosition)
-        {
-            for (int i = 0; i < items.Count; i++)
-            {
-                int y = i * 2 % CombatGridHeight;
-                items[i].Position = new Position(xPosition, y);
-                _combatGrid[xPosition, y].Items.Add(items[i]);
             }
         }
         private void PlaceItemsRandomly()

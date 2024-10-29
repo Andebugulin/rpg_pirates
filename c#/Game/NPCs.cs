@@ -1,7 +1,7 @@
 namespace Game 
 {
    // Updated Character class
-    public abstract class Character : Entity
+    public abstract class Character : Entity, IQuestObserver
     {
         public int Health { get; set; }
         public int MaxHealth { get; protected set; }
@@ -18,6 +18,9 @@ namespace Game
         private ICharacterState currentState;
         private List<IActionStrategy> availableStrategies;
 
+        public List<Quest> ActiveQuests { get; private set; }
+        public Dictionary<string, int> QuestProgress { get; private set; }
+
         public Character(string name, Position position, int health, int strength) 
             : base(name, position, EntityType.Character)
         {
@@ -25,18 +28,99 @@ namespace Game
             Strength = strength;
             Stamina = MaxStamina = 100;
             MagicPoints = MaxMagicPoints = 50;
-            Ammunition =  new Random().Next(1, 2);
+            Ammunition = new Random().Next(1, 2);
             Items = new List<Item>();
             
-
             availableStrategies = new List<IActionStrategy>
             {
                 new HealAction()
             };
-            currentStrategy = availableStrategies[0]; // Default to melee
-            currentState = new IdleState(); // Start in idle state
+            currentStrategy = availableStrategies[0];
+            currentState = new IdleState();
+
+            ActiveQuests = new List<Quest>();
+            QuestProgress = new Dictionary<string, int>();
         }
 
+        public void AcceptQuest(Quest quest)
+        {
+            if (!ActiveQuests.Contains(quest))
+            {
+                ActiveQuests.Add(quest);
+                foreach (var objective in quest.Objectives)
+                {
+                    QuestProgress[objective.Description] = 0;
+                }
+                GameWorld.Instance.AddToCombatLog($"{Name} accepted quest: {quest.Name}");
+            }
+        }
+        public void AbandonQuest(Quest quest)
+        {
+            if (ActiveQuests.Contains(quest))
+            {
+                ActiveQuests.Remove(quest);
+                foreach (var objective in quest.Objectives)
+                {
+                    QuestProgress.Remove(objective.Description);
+                }
+                GameWorld.Instance.AddToCombatLog($"{Name} abandoned quest: {quest.Name}");
+            }
+        }
+         public void OnQuestStarted(Quest quest)
+    {
+        GameWorld.Instance.AddToCombatLog($"{Name} received new quest: {quest.Name}");
+        GameWorld.Instance.AddToCombatLog($"Description: {quest.Description}");
+        
+        // Display rewards
+        foreach (var reward in quest.Rewards)
+        {
+            GameWorld.Instance.AddToCombatLog($"Reward: {reward.Value} {reward.Key}");
+        }
+    }
+
+    public void OnQuestCompleted(Quest quest)
+    {
+        GameWorld.Instance.AddToCombatLog($"{Name} completed quest: {quest.Name}!");
+        
+        // Process rewards
+        foreach (var reward in quest.Rewards)
+        {
+            switch (reward.Key)
+            {
+                case "Gold":
+                    GameWorld.Instance.AddToCombatLog($"{Name} received {reward.Value} gold");
+                    break;
+                case "Experience":
+                    GameWorld.Instance.AddToCombatLog($"{Name} gained {reward.Value} experience");
+                    break;
+                case "Reputation":
+                    GameWorld.Instance.AddToCombatLog($"{Name} gained {reward.Value} reputation");
+                    break;
+            }
+        }
+        
+        ActiveQuests.Remove(quest);
+    }
+
+    public void OnQuestObjectiveUpdated(Quest quest, QuestObjective objective)
+    {
+        if (ActiveQuests.Contains(quest))
+        {
+            GameWorld.Instance.AddToCombatLog($"{Name} updated objective: {objective.Description}");
+            if (objective.IsCompleted)
+            {
+                GameWorld.Instance.AddToCombatLog($"{Name} completed objective: {objective.Description}");
+            }
+        }
+    }
+
+    public void OnQuestUpdated(Quest quest, string message)
+    {
+        if (ActiveQuests.Contains(quest))
+        {
+            GameWorld.Instance.AddToCombatLog($"{Name} - {message}");
+        }
+    }
         public void AddItem(Item item)
         {
             Items.Add(item);
@@ -62,9 +146,37 @@ namespace Game
             if (currentStrategy.CanPerformAction(this, target))
             {
                 currentStrategy.PerformAction(this, target);
-                return true;
+                UpdateQuestProgress(target);
+                return true;    
             }
             return false;
+        }
+
+        private void UpdateQuestProgress(Character target)
+        {
+            foreach (var quest in ActiveQuests)
+            {
+                foreach (var objective in quest.Objectives.Where(o => !o.IsCompleted))
+                {
+                    switch (quest.Type)
+                    {
+                        case QuestType.Combat when target is Pirate && currentStrategy.GetActionName().Contains("Attack"):
+                            IncrementProgress(objective, "Defeat pirates");
+                            break;
+                        case QuestType.Naval when target.GetType().Name.Contains("Soldier"):
+                            IncrementProgress(objective, "Defeat enemy soldiers");
+                            break;
+                    }
+                }
+            }
+        }
+        private void IncrementProgress(QuestObjective objective, string progressKey)
+        {
+            if (QuestProgress.ContainsKey(progressKey))
+            {
+                QuestProgress[progressKey]++;
+                GameWorld.Instance.AddToCombatLog($"{Name} made progress on objective: {progressKey}");
+            }
         }
 
         public void UpdateState()

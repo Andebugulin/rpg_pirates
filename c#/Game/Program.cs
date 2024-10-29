@@ -6,6 +6,7 @@ namespace Game
     {
         static void Main(string[] args)
         {
+            Console.Clear();
             GameWorld game = GameWorld.Instance;
             bool isRunning = true;
             
@@ -14,6 +15,8 @@ namespace Game
                 .Where(s => s != game.playerShip)
                 .Select(s => new ShipAI(s))
                 .ToList();
+            
+            Thread.Sleep(10000);
 
             while (isRunning)
             {
@@ -60,7 +63,6 @@ namespace Game
                 {
                     game.MoveEntity(game.playerShip, newPosition);
                 }
-
                 Console.Clear();
             }
 

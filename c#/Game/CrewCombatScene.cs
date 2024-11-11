@@ -11,10 +11,12 @@ namespace Game
         private readonly Cell[,] _combatGrid;
         private Character _playerCharacter;
         private List<Item> _availableItems;
+        private readonly GameController _gameController;
 
 
         public CrewCombatScene(Ship ship1, Ship ship2)
         {
+            _gameController = new GameController();
             _ship1 = ship1;
             _ship2 = ship2;
             _combatGrid = new Cell[CombatGridWidth, CombatGridHeight];
@@ -192,6 +194,7 @@ namespace Game
                 case 'Q':
                     _ship1.Crew.Clear(); // Force end combat
                     break;
+                
             }
         }
 
@@ -211,12 +214,15 @@ namespace Game
             Position newPosition = GetNewPosition(input);
             if (IsValidPosition(newPosition))
             {
-                MoveCharacter(_playerCharacter, newPosition);
-                _playerCharacter.SetState(new ActionState());
-                var itemAtPosition = _combatGrid[_playerCharacter.Position.X, _playerCharacter.Position.Y].Items.FirstOrDefault();
-                if (itemAtPosition != null)
+                var moveCommand = new MoveCommand(_playerCharacter, newPosition, _combatGrid);
+                if (_gameController.ExecuteCommand(moveCommand))
                 {
-                    PickUpItem(_playerCharacter, itemAtPosition);
+                    _playerCharacter.SetState(new ActionState());
+                    var itemAtPosition = _combatGrid[newPosition.X, newPosition.Y].Items.FirstOrDefault();
+                    if (itemAtPosition != null)
+                    {
+                        PickUpItem(_playerCharacter, itemAtPosition);
+                    }
                 }
             }
         }
@@ -263,17 +269,11 @@ namespace Game
             if (possibleTargets.Count > 0)
             {
                 Character target = possibleTargets[0];
-                if (_playerCharacter.PerformAction(target))
-                {
-                    if (target.Health <= 0)
-                    {
-                        RemoveDefeatedCharacter(target);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Cannot perform this action!");
-                }
+                ICommand command = currentStrategy is HealAction 
+                    ? new HealCommand(_playerCharacter)
+                    : new AttackCommand(_playerCharacter, target);
+                    
+                _gameController.ExecuteCommand(command);
             }
             else
             {

@@ -6,9 +6,9 @@ namespace Game
         public int Health { get; set; }
         public int MaxHealth { get; protected set; }
         public int Strength { get; protected set; }
-        public int Stamina { get; protected set; }
+        public int Stamina { get; set; }
         public int MaxStamina { get; protected set; }
-        public int MagicPoints { get; protected set; }
+        public int MagicPoints { get; set; }
         public int MaxMagicPoints { get; protected set; }
         public int Ammunition { get; protected set; }
         public bool IsAlive => Health > 0;

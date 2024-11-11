@@ -7,6 +7,7 @@ namespace Game
         string GetActionName();
         bool CanPerformAction(Character actor, Character target);
         int GetRange();
+        int CalculateDamage(Character actor);
     }
 
    // Concrete Action Strategies
@@ -20,6 +21,7 @@ namespace Game
             actor.UseStamina(STAMINA_COST);
             GameWorld.Instance.AddToCombatLog($"{actor.Name} strikes {target.Name} for {damage} damage!");
         }
+        public int CalculateDamage(Character actor) => new Random().Next(actor.Strength / 2, actor.Strength);
         public string GetActionName() => "Melee Attack";
         public bool CanPerformAction(Character actor, Character target) 
             => actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
@@ -37,6 +39,7 @@ namespace Game
             actor.UseAmmunition(1);
             GameWorld.Instance.AddToCombatLog($"{actor.Name} shoots {target.Name} for {damage} damage!");
         }
+        public int CalculateDamage(Character actor) => new Random().Next(actor.Strength / 3, actor.Strength / 2);
         public string GetActionName() => "Ranged Attack";
         public bool CanPerformAction(Character actor, Character target) 
             => actor.Ammunition > 0 && actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
@@ -53,6 +56,7 @@ namespace Game
             actor.UseMagicPoints(MAGIC_COST);
             GameWorld.Instance.AddToCombatLog($"{actor.Name} casts a spell on {target.Name} for {damage} damage!");
         }
+        public int CalculateDamage(Character actor) => new Random().Next(actor.MagicPoints / 2, actor.MagicPoints);
         public string GetActionName() => "Magic Attack";
         public bool CanPerformAction(Character actor, Character target) 
             => actor.MagicPoints >= MAGIC_COST && actor.IsAlive && target.IsAlive;
@@ -69,6 +73,7 @@ namespace Game
             actor.UseMagicPoints(MAGIC_COST);
             GameWorld.Instance.AddToCombatLog($"{actor.Name} heals {target.Name} for {healAmount} health!");
         }
+        public int CalculateDamage(Character actor) => new Random().Next(10, 20);
         public string GetActionName() => "Heal";
         public bool CanPerformAction(Character actor, Character target) 
             => actor.MagicPoints >= MAGIC_COST && actor.IsAlive && target.IsAlive && target.Health < target.MaxHealth;

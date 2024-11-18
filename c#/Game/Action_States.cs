@@ -13,54 +13,96 @@ namespace Game
    // Concrete Action Strategies
     public class MeleeAction : IActionStrategy
     {
-        private const int STAMINA_COST = 10;
-        public void PerformAction(Character actor, Character target)
+    private const int STAMINA_COST = 10;
+    public void PerformAction(Character actor, Character target)
         {
-            int damage = new Random().Next(actor.Strength / 2, actor.Strength);
-            target.TakeDamage(damage);
-            actor.UseStamina(STAMINA_COST);
-            GameWorld.Instance.AddToCombatLog($"{actor.Name} strikes {target.Name} for {damage} damage!");
+        int damage = CalculateDamage(actor);
+        target.TakeDamage(damage);
+        actor.UseStamina(STAMINA_COST);
+        GameWorld.Instance.AddToCombatLog($"{actor.Name} strikes {target.Name} for {damage} damage!");
         }
-        public int CalculateDamage(Character actor) => new Random().Next(actor.Strength / 2, actor.Strength);
-        public string GetActionName() => "Melee Attack";
-        public bool CanPerformAction(Character actor, Character target) 
-            => actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
-        public int GetRange() => 1;
+
+    public int CalculateDamage(Character actor)
+        {
+        var weapon = actor.GetEquippedItem(EquipmentSlotType.Weapon) as Weapon;
+        if (weapon == null)
+            {
+            // Unarmed damage (minimal)
+            return Math.Max(1, actor.Strength / 4);
+            }
+
+
+        // Base damage on weapon's damage + some character strength variation
+        return weapon.Damage + (actor.Strength / 4);
+        }
+
+    public string GetActionName() => "Melee Attack";
+    public bool CanPerformAction(Character actor, Character target) 
+        => actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
+    public int GetRange() => 1;
     }
 
-    public class RangedAction : IActionStrategy
+public class RangedAction : IActionStrategy
     {
-        private const int STAMINA_COST = 5;
-        public void PerformAction(Character actor, Character target)
+    private const int STAMINA_COST = 5;
+    public void PerformAction(Character actor, Character target)
         {
-            int damage = new Random().Next(actor.Strength / 3, actor.Strength / 2);
-            target.TakeDamage(damage);
-            actor.UseStamina(STAMINA_COST);
-            actor.UseAmmunition(1);
-            GameWorld.Instance.AddToCombatLog($"{actor.Name} shoots {target.Name} for {damage} damage!");
+        int damage = CalculateDamage(actor);
+        target.TakeDamage(damage);
+        actor.UseStamina(STAMINA_COST);
+        actor.UseAmmunition(1);
+        GameWorld.Instance.AddToCombatLog($"{actor.Name} shoots {target.Name} for {damage} damage!");
         }
-        public int CalculateDamage(Character actor) => new Random().Next(actor.Strength / 3, actor.Strength / 2);
-        public string GetActionName() => "Ranged Attack";
-        public bool CanPerformAction(Character actor, Character target) 
-            => actor.Ammunition > 0 && actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
-        public int GetRange() => 3;
+
+    public int CalculateDamage(Character actor)
+        {
+        var weapon = actor.GetEquippedItem(EquipmentSlotType.Weapon) as Weapon;
+        if (weapon == null)
+            {
+            // Unarmed ranged damage (minimal)
+            return Math.Max(1, actor.Strength / 6);
+            }
+
+
+        // Base damage on weapon's damage with slight reduction for ranged
+        return weapon.Damage * 3 / 4 + (actor.Strength / 6);
+        }
+
+    public string GetActionName() => "Ranged Attack";
+    public bool CanPerformAction(Character actor, Character target) 
+        => actor.Ammunition > 0 && actor.Stamina >= STAMINA_COST && actor.IsAlive && target.IsAlive;
+    public int GetRange() => 3;
     }
 
-    public class MagicAction : IActionStrategy
+public class MagicAction : IActionStrategy
     {
-        private const int MAGIC_COST = 15;
-        public void PerformAction(Character actor, Character target)
+    private const int MAGIC_COST = 15;
+    public void PerformAction(Character actor, Character target)
         {
-            int damage = new Random().Next(actor.MagicPoints / 2, actor.MagicPoints);
-            target.TakeDamage(damage);
-            actor.UseMagicPoints(MAGIC_COST);
-            GameWorld.Instance.AddToCombatLog($"{actor.Name} casts a spell on {target.Name} for {damage} damage!");
+        int damage = CalculateDamage(actor);
+        target.TakeDamage(damage);
+        actor.UseMagicPoints(MAGIC_COST);
+        GameWorld.Instance.AddToCombatLog($"{actor.Name} casts a spell on {target.Name} for {damage} damage!");
         }
-        public int CalculateDamage(Character actor) => new Random().Next(actor.MagicPoints / 2, actor.MagicPoints);
-        public string GetActionName() => "Magic Attack";
-        public bool CanPerformAction(Character actor, Character target) 
-            => actor.MagicPoints >= MAGIC_COST && actor.IsAlive && target.IsAlive;
-        public int GetRange() => 2;
+
+    public int CalculateDamage(Character actor)
+        {
+        var relic = actor.GetEquippedItem(EquipmentSlotType.Utility) as Relic;
+        if (relic == null)
+            {
+            // Base magic damage without a relic
+            return Math.Max(1, actor.MagicPoints / 3);
+            }
+
+
+        // Base damage on relic's power + magic points
+        return relic.Power + (actor.MagicPoints / 3);
+        }
+
+    public string GetActionName() => "Magic Attack";
+    public bool CanPerformAction(Character actor, Character target) 
+        => actor.MagicPoints >= MAGIC_COST && actor.IsAlive && target.IsAlive;
+    public int GetRange() => 2;
     }
 
     public class HealAction : IActionStrategy

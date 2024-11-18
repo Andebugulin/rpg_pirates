@@ -147,12 +147,10 @@ namespace Game
             inventory.AddItem(mythicalFactory.CreateRelic());
 
             // Display inventory
-            inventory.DisplayInventory();
-
             // Test equipping items
             foreach (var item in character.Items)
             {
-                character.EquipItem(item);
+                CharacterInventoryExtensions.EquipItem(character, item);
             }
 
             // Test removing an item

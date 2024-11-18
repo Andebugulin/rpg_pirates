@@ -16,7 +16,7 @@ namespace Game
         private bool _executed;
 
         public AttackCommand(Character attacker, Character target)
-        {
+            {
             _attacker = attacker;
             _target = target;
             _damageDealt = 0;
@@ -24,66 +24,82 @@ namespace Game
         }
 
         public bool Execute()
-        {
-            if (_attacker.Stamina >= 10 && !_executed)
             {
+            // Check if a weapon is equipped before attacking
+            var equippedWeapon = _attacker.GetEquippedItem(EquipmentSlotType.Weapon);
+            if (equippedWeapon == null)
+                {
+                GameWorld.Instance.AddToCombatLog($"{_attacker.Name} cannot attack without a weapon!");
+                return false;
+                }
+
+            if (_attacker.Stamina >= 10 && !_executed)
+                {
                 int damage = _attacker.GetCurrentStrategy().CalculateDamage(_attacker);
                 _target.TakeDamage(damage);
                 _attacker.Stamina -= 10;
                 _executed = true;
-                GameWorld.Instance.AddToCombatLog($"{_attacker.Name} attacked {_target.Name} for {damage} damage!");
+                GameWorld.Instance.AddToCombatLog($"{_attacker.Name} attacked {_target.Name} for {damage} damage with {equippedWeapon.Name}!");
                 return true;
-            }
+                }
             return false;
-        }
+            }
 
         public void Undo()
-        {
-            if (_executed)
             {
+            if (_executed)
+                {
                 _target.Health += _damageDealt;
                 _attacker.Stamina += 10;
                 _executed = false;
                 GameWorld.Instance.AddToCombatLog($"Undid {_attacker.Name}'s attack on {_target.Name}");
-            }
+                }
         }
     }
 
     public class DefendCommand : ICommand
-    {
+        {
         private readonly Character _character;
         private bool _executed;
         private ICharacterState _previousState;
+        private Item _equippedDefensiveItem;
 
         public DefendCommand(Character character)
-        {
+            {
             _character = character;
             _executed = false;
-        }
+            _equippedDefensiveItem = _character.GetEquippedItem(EquipmentSlotType.Defensive);
+            }
 
         public bool Execute()
-        {
-            if (!_executed)
             {
+            if (_equippedDefensiveItem == null)
+                {
+                GameWorld.Instance.AddToCombatLog($"{_character.Name} cannot enter defensive stance without a defensive item!");
+                return false;
+                }
+
+            if (!_executed)
+                {
                 _previousState = _character.GetCurrentState();
                 _character.SetState(new DefendingState());
                 _executed = true;
-                GameWorld.Instance.AddToCombatLog($"{_character.Name} enters a defensive stance!");
+                GameWorld.Instance.AddToCombatLog($"{_character.Name} enters a defensive stance with {_equippedDefensiveItem.Name}!");
                 return true;
-            }
+                }
             return false;
-        }
+            }
 
         public void Undo()
-        {
-            if (_executed)
             {
+            if (_executed)
+                {
                 _character.SetState(_previousState);
                 _executed = false;
                 GameWorld.Instance.AddToCombatLog($"{_character.Name} leaves defensive stance");
+                }
             }
         }
-    }
 
     public class HealCommand : ICommand
     {

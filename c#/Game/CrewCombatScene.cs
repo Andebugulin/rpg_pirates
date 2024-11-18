@@ -168,6 +168,7 @@ namespace Game
             Console.WriteLine("SPACE: Perform current action");
             Console.WriteLine("D: Enter defending state");
             Console.WriteLine("I: View Inventory");
+            Console.WriteLine("E: Open Equipment Menu");
             Console.WriteLine("Q: Quit combat");
 
             char input = Console.ReadKey(true).KeyChar;
@@ -196,6 +197,9 @@ namespace Game
                     var inventory = _playerCharacter.InitializeInventory();
                     inventory.DisplayInventory();
                     Console.ReadKey(true);
+                    break;
+                case 'E':
+                    _playerCharacter.ShowEquipmentMenu();
                     break;
                 case 'Q':
                     _ship1.Crew.Clear(); // Force end combat

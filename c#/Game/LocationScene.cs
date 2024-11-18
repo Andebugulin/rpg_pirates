@@ -95,7 +95,7 @@ namespace Game
             Console.WriteLine("\nControls: HJKL to move, SPACE to interact, Q to quit");
         }
 
-        private bool HandleInput()
+       private bool HandleInput()
         {
             var key = Console.ReadKey(true).Key;
             Position newPos = new Position(_playerCharacter.Position.X, _playerCharacter.Position.Y);
@@ -104,9 +104,14 @@ namespace Game
             {
                 case ConsoleKey.K: newPos.Y--; break;
                 case ConsoleKey.J: newPos.Y++; break;
-                case ConsoleKey.H:newPos.X--; break;
+                case ConsoleKey.H: newPos.X--; break;
                 case ConsoleKey.L: newPos.X++; break;
                 case ConsoleKey.Spacebar: Interact(); return true;
+                case ConsoleKey.I: 
+                    var inventory = _playerCharacter.InitializeInventory();
+                    inventory.DisplayInventory(); 
+                    Console.ReadKey(true); 
+                    return true;
                 case ConsoleKey.Q: return false;
             }
 
@@ -131,7 +136,7 @@ namespace Game
             _sceneGrid[newPos.X, newPos.Y].Entities.Add(_playerCharacter);
         }
 
-        private void Interact()
+       private void Interact()
         {
             var adjacentPositions = new List<Position>
             {
@@ -140,8 +145,9 @@ namespace Game
                 new Position(_playerCharacter.Position.X - 1, _playerCharacter.Position.Y),
                 new Position(_playerCharacter.Position.X + 1, _playerCharacter.Position.Y),
                 _playerCharacter.Position
-                
             };
+
+            var inventory = _playerCharacter.InitializeInventory();
 
             foreach (var pos in adjacentPositions)
             {
@@ -159,11 +165,18 @@ namespace Game
                     if (_sceneGrid[pos.X, pos.Y].Items.Count > 0)
                     {
                         var item = _sceneGrid[pos.X, pos.Y].Items[0];
-                        Console.WriteLine($"Picked up {item.Name}");
-                        _playerCharacter.AddItem(item);
-                        _sceneGrid[pos.X, pos.Y].Items.Remove(item);
-                        _location.LocationItems.Remove(item);
-                        Console.ReadKey(true);
+                        if (inventory.AddItem(item))
+                        {
+                            _sceneGrid[pos.X, pos.Y].Items.Remove(item);
+                            _location.LocationItems.Remove(item);
+                            Console.WriteLine($"Picked up {item.Name}");
+                            Console.ReadKey(true);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Inventory is full!");
+                            Console.ReadKey(true);
+                        }
                     }
                 }
             }

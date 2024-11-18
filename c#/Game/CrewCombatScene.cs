@@ -167,6 +167,7 @@ namespace Game
             Console.WriteLine("HJKL: Move");
             Console.WriteLine("SPACE: Perform current action");
             Console.WriteLine("D: Enter defending state");
+            Console.WriteLine("I: View Inventory");
             Console.WriteLine("Q: Quit combat");
 
             char input = Console.ReadKey(true).KeyChar;
@@ -191,10 +192,14 @@ namespace Game
                 case ' ':
                     HandleAction();
                     break;
+                case 'I':
+                    var inventory = _playerCharacter.InitializeInventory();
+                    inventory.DisplayInventory();
+                    Console.ReadKey(true);
+                    break;
                 case 'Q':
                     _ship1.Crew.Clear(); // Force end combat
                     break;
-                
             }
         }
 
@@ -228,24 +233,13 @@ namespace Game
         }
         private void PickUpItem(Character character, Item item)
         {
-            character.AddItem(item);
-            _combatGrid[item.Position.X, item.Position.Y].Items.Remove(item);
-            _availableItems.Remove(item);
-
-            // Add corresponding strategy based on item type
-            if (item is Weapon weapon)
+            // Replace the existing method with:
+            var inventory = character.InitializeInventory();
+            if (inventory.AddItem(item))
             {
-                if (weapon.Type == WeaponType.Melee)
-                    character.AddStrategy(new MeleeAction());
-                else if (weapon.Type == WeaponType.Ranged)
-                    character.AddStrategy(new RangedAction());
+                _combatGrid[item.Position.X, item.Position.Y].Items.Remove(item);
+                _availableItems.Remove(item);
             }
-            else if (item is Relic)
-            {
-                character.AddStrategy(new MagicAction());
-            }
-
-            Console.WriteLine($"{character.Name} picked up {item.Name}!");
         }
 
         private Position GetNewPosition(char input)

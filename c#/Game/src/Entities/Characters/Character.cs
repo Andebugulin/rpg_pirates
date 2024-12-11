@@ -243,36 +243,4 @@ namespace Game
             };
         }
     }
-
-    public class Civilian : Character
-    {
-        public Civilian(string name, Position position, int health, int strength) 
-            : base(name, position, health, strength) 
-        { }
-
-    }
-
-    public class SpanishSoldier : Character
-    {
-        public SpanishSoldier(string name, Position position, int health, int strength) 
-            : base(name, position, health, strength) 
-        { }
-
-    }
-
-    public class EnglishSoldier : Character
-    {
-        public EnglishSoldier(string name, Position position, int health, int strength) 
-            : base(name, position, health, strength) 
-        { }
-
-    }
-
-    public class Pirate : Character
-    {
-        public Pirate(string name, Position position, int health, int strength) 
-            : base(name, position, health, strength) 
-        { }
-
-    }
 }

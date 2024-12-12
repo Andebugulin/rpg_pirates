@@ -55,6 +55,7 @@ namespace Game
         public int height;
         public List<Entity> entities; 
         public Ship playerShip;
+        public QuestManager questManager;
 
         private static GameWorld _instance; // Singleton instance
 
@@ -69,6 +70,7 @@ namespace Game
         TimeOfDay = "Day";
         Weather = "Clear";
         entities = new List<Entity>();
+        questManager = new QuestManager();
         
         // Initialize grid
         grid = new Cell[width, height];
@@ -166,11 +168,10 @@ namespace Game
         flyingDutchman.ShowShipItems();
 
         // Create and set up quests AFTER everything else is initialized
-        var questManager = new QuestManager();
-        var quest = QuestFactory.CreatePirateHuntQuest(5);
-        
+        var quest = QuestFactory.CreatePirateHuntQuest(3);
+        var pirate_for_quest = captainJack; 
         // Now we can safely register observers and add quests
-        questManager.RegisterObserverForQuest(captainJack, quest);
+        questManager.RegisterObserverForQuest(pirate_for_quest, quest);
         questManager.AddQuest(quest);
     }
         public static GameWorld Instance

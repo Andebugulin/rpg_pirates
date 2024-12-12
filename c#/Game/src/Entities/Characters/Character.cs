@@ -13,6 +13,7 @@ namespace Game
         public int Ammunition { get; protected set; }
         public bool IsAlive => Health > 0;
         public List<Item> Items { get; private set; }
+        public int KilledEnemies { get; private set; }
 
         private IActionStrategy currentStrategy;
         private ICharacterState currentState;
@@ -225,6 +226,11 @@ namespace Game
         public void RegenerateMagicPoints(int amount)
         {
             MagicPoints = Math.Min(MaxMagicPoints, MagicPoints + amount);
+        }
+
+        public void KillEnemy()
+        {
+            KilledEnemies++;
         }
 
         private void Die()

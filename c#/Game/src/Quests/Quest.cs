@@ -57,7 +57,7 @@ namespace Game
         public QuestState State { get; private set; }
         public List<QuestObjective> Objectives { get; }
         public Dictionary<string, int> Rewards { get; } // e.g., "Gold", "Reputation"
-        public bool IsCompleted => Objectives.All(o => o.IsCompleted);
+        public bool IsCompleted => Objectives.All(o => o.IsCompleted) ;
 
         public Quest(string name, string description, QuestType type, Dictionary<string, int> rewards)
         {

@@ -44,6 +44,7 @@ namespace Game
                 HandleAIActions();
                 UpdateCharacterStates();
                 combatOngoing = !IsCombatOver();
+                GameWorld.Instance.questManager.UpdateQuests(GameWorld.Instance);
             }
             AnnounceCombatResult();
         }
@@ -123,7 +124,7 @@ namespace Game
                     {
                         var entity = cell.Entities[0] as Character;
                         char symbol = entity == _playerCharacter ? '@' : 
-                                    _ship1.Crew.Contains(entity) ? 'A' : 'E';
+                                    _ship1.Crew.Contains(entity) ? 'A' : _ship2.Crew.Contains(entity) ? 'E' : 'X';
                         Console.Write($"[{symbol}]");
                     }
                     else if (cell.Items.Count > 0)
@@ -176,6 +177,7 @@ namespace Game
             Console.WriteLine("I: View Inventory");
             Console.WriteLine("E: Open Equipment Menu");
             Console.WriteLine("Q: Quit combat");
+            Console.WriteLine("O: View Quests"); // New option added
 
             char input = Console.ReadKey(true).KeyChar;
             if (char.IsDigit(input))
@@ -207,10 +209,48 @@ namespace Game
                 case 'E':
                     _playerCharacter.ShowEquipmentMenu();
                     break;
+                case 'O': // New case for displaying quests
+                    DisplayQuests();
+                    break;
                 case 'Q':
                     _ship1.Crew.Clear(); // Force end combat
                     break;
             }
+        }
+
+       private void DisplayQuests()
+        {
+            Console.Clear();
+            Console.WriteLine("Current Quests:\n");
+            
+            var activeQuests = GameWorld.Instance.questManager.GetActiveQuests();
+            
+            if (activeQuests == null || activeQuests.Count == 0)
+            {
+                Console.WriteLine("No active quests at the moment.");
+            }
+            else
+            {
+                for (int i = 0; i < activeQuests.Count; i++)
+                {
+                    var quest = activeQuests[i];
+                    
+                    Console.WriteLine($"Quest {i + 1}: {quest.Name}");
+                    Console.WriteLine($"State: {quest.State}");
+                    
+                    Console.WriteLine("Objectives:");
+                    foreach (var objective in quest.Objectives)
+                    {
+                        string completionStatus = objective.IsCompleted ? "[X]" : "[ ]";
+                        Console.WriteLine($"  {completionStatus} {objective.Description}");
+                    }
+                    
+                    Console.WriteLine($"Completed Objectives: {quest.Objectives.Count(o => o.IsCompleted)}/{quest.Objectives.Count}\n");
+                }
+            }
+            
+            Console.WriteLine("Press any key to return to combat...");
+            Console.ReadKey(true);
         }
 
         private void HandleStrategySelection(char input)

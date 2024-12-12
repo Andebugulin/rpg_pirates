@@ -42,7 +42,18 @@ namespace Game
                 rewards
             );
 
-            quest.AddObjective($"Defeat {pirateCount} pirates", (gameWorld) => {
+            quest.AddObjective($"Defeat {pirateCount} pirates", (gameWorld) => 
+            {
+                int totalKilledEnemies = 0;
+                foreach (var crewMember in GameWorld.Instance.playerShip.Crew)
+                {
+                    totalKilledEnemies += crewMember.KilledEnemies;
+                }
+
+                if (totalKilledEnemies >= pirateCount)
+                {
+                    quest.Objectives[0].Complete();
+                }
             });
 
             return quest;

@@ -35,7 +35,7 @@ namespace Game
 
         // Register observer for specific quest
         public void RegisterObserverForQuest(IQuestObserver observer, Quest quest)
-        {
+        {   
             var observers = questSpecificObservers.GetOrAdd(quest, _ => new HashSet<IQuestObserver>());
             
             if (!observers.Contains(observer))
@@ -150,6 +150,11 @@ namespace Game
             }
         }
 
+        public List<Quest> GetActiveQuests()
+        {
+            return activeQuests.ToList();
+        }
+
         public void AddQuest(Quest quest)
         {
             activeQuests.Add(quest);
@@ -163,7 +168,7 @@ namespace Game
                 var completedBefore = quest.Objectives.Count(o => o.IsCompleted);
                 quest.CheckObjectives(gameWorld);
                 var completedAfter = quest.Objectives.Count(o => o.IsCompleted);
-
+               
                 if (completedBefore != completedAfter)
                 {
                     // Find and notify about newly completed objectives

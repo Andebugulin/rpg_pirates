@@ -37,6 +37,10 @@ namespace Game
                 {
                 int damage = _attacker.GetCurrentStrategy().CalculateDamage(_attacker);
                 _target.TakeDamage(damage);
+                if (!_target.IsAlive)
+                    {
+                    _attacker.KillEnemy();
+                    }
                 _attacker.Stamina -= 10;
                 _executed = true;
                 GameWorld.Instance.AddToCombatLog($"{_attacker.Name} attacked {_target.Name} for {damage} damage with {equippedWeapon.Name}!");

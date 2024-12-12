@@ -94,6 +94,7 @@ namespace Game
         // Create all ships first
         Position blackPearlPosition = new Position(20, 8);
         Position dutchmanPosition = new Position(25, 12);
+        
         Ship blackPearl = ShipFactory.CreateShip("Galleon", "Black Pearl", blackPearlPosition);
         Ship flyingDutchman = ShipFactory.CreateShip("ManO'War", "Flying Dutchman", dutchmanPosition);
 
@@ -109,6 +110,10 @@ namespace Game
         Character crewMember1 = CharacterFactory.CreateCharacter("Pirate", "Crewman Gibbs", crewPosition2);
         Character davyJones = CharacterFactory.CreateCharacter("Pirate", "Davy Jones", Utils.GetRandomPosition(width, height));
         Character bootstrapBill = CharacterFactory.CreateCharacter("Pirate", "Bootstrap Bill", Utils.GetRandomPosition(width, height));
+        Character billTurner = CharacterFactory.CreateCharacter("Pirate", "Bill Turner", Utils.GetRandomPosition(width, height));
+        Character maccus = CharacterFactory.CreateCharacter("Pirate", "Maccus", Utils.GetRandomPosition(width, height));
+        Character clanker = CharacterFactory.CreateCharacter("Pirate", "Clanker", Utils.GetRandomPosition(width, height));
+        Character victor = CharacterFactory.CreateCharacter("Pirate", "Victor", Utils.GetRandomPosition(width, height));
 
         // Add characters to locations
         portRoyal.AddPerson(merchantJohn);
@@ -127,6 +132,10 @@ namespace Game
         blackPearl.AddCrewMember(crewMember1);
         flyingDutchman.AddCrewMember(davyJones);
         flyingDutchman.AddCrewMember(bootstrapBill);
+        flyingDutchman.AddCrewMember(billTurner);
+        flyingDutchman.AddCrewMember(maccus);
+        flyingDutchman.AddCrewMember(clanker);
+        flyingDutchman.AddCrewMember(victor);
 
         // Add items to ships
         blackPearl.AddItemToShip(rareFactory.CreateWeapon());
@@ -175,6 +184,11 @@ namespace Game
                 }
                 return _instance;
             }
+        }
+
+        public void ChangePlayerShip(Ship newShip)
+        {
+            playerShip = newShip;
         }
 
         public string TimeOfDay { get; set; }

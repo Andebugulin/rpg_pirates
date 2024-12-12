@@ -69,7 +69,7 @@ namespace Game
             }
         }
 
-        private void RenderScene()
+        private void RenderScene() // TODO: this method might be implemented with better usage of cell class, in order to customize it later, in the future better!
         {
             Console.Clear();
             Console.WriteLine($"Location: {_location.Name}");

@@ -22,13 +22,11 @@ namespace Game
             _combatGrid = new Cell[CombatGridWidth, CombatGridHeight];
             InitializeCombatGrid();
             _availableItems = new List<Item>();
-            Console.WriteLine(1);
             for (int i = 0; i < ship1.ShipItems.Count; i++)
             {
                 _availableItems.Add(ship1.ShipItems[i]);
                 Console.WriteLine("i", i);
             }
-            Console.WriteLine("23");
             for (int i = 0; i < ship2.ShipItems.Count; i++)
             {
                 _availableItems.Add(ship2.ShipItems[i]);
@@ -59,7 +57,15 @@ namespace Game
             PlaceCrewOnGrid(_ship1.Crew, 1);
             PlaceCrewOnGrid(_ship2.Crew, CombatGridWidth - SpaceBetweenCrews);
 
-            _playerCharacter = _ship1.Crew[0];
+            try
+            {
+                _playerCharacter = _ship1.Crew[0];
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                _playerCharacter = _ship2.Crew[0];
+                GameWorld.Instance.ChangePlayerShip(_ship2);
+            }
         }
 
         private void PlaceCrewOnGrid(List<Character> crew, int xPosition)
@@ -136,7 +142,7 @@ namespace Game
         private void DisplayCombatLog()
         {
             Console.WriteLine("\nCombat Log:");
-            foreach (var logEntry in GameWorld.Instance.combatLog.TakeLast(5))
+            foreach (var logEntry in GameWorld.Instance.combatLog.TakeLast(10))
             {
                 Console.WriteLine(logEntry);
             }

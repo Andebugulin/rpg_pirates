@@ -16,12 +16,12 @@ namespace Game
                 .Select(s => new ShipAI(s))
                 .ToList();
             
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
 
             while (isRunning)
             {
                 game.DisplayMap();
-                Console.WriteLine("Move the player ship (WASD) or press Q to quit:");
+                Console.WriteLine("Move the player ship (HJLK) or press Q to quit:");
                 
                 foreach (var ai in shipAIs)
                 {

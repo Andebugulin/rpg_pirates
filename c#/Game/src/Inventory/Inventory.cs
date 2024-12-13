@@ -65,26 +65,25 @@ namespace Game
 
         public void DisplayInventory()
         {
-            GameWorld.Instance.AddToCombatLog($"\n=== {_owner.Name}'s Inventory ===");
-            GameWorld.Instance.AddToCombatLog($"Items: {Count}/{MaxCapacity}");
+            Console.Clear();
+            Console.WriteLine("Current Inventory:\n");
+            
             
             if (_owner.Items.Count == 0)
             {
-                GameWorld.Instance.AddToCombatLog("Inventory is empty.");
-                return;
+                Console.WriteLine("Your inventory is empty.");
             }
-
-            // Group items by type for better organization
-            var groupedItems = _owner.Items.GroupBy(item => item.GetType().Name);
-            
-            foreach (var group in groupedItems)
+            else
             {
-                GameWorld.Instance.AddToCombatLog($"\n{group.Key}s:");
-                foreach (var item in group)
+                for (int i = 0; i < _owner.Items.Count; i++)
                 {
-                    item.DisplayInfo();
+                    var item = _owner.Items[i];
+                    item.DisplayInfo(); 
                 }
             }
+            
+            Console.WriteLine("\nPress any key to return to combat...");
+            Console.ReadKey(true);
         }
 
         public List<T> GetItemsOfType<T>() where T : Item

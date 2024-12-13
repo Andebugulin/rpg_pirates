@@ -3,7 +3,7 @@ namespace Game
     public class CrewCombatScene
     {
         private const int CombatGridWidth = 15;
-        private const int CombatGridHeight = 10;
+        private const int CombatGridHeight = 15;
         private const int SpaceBetweenCrews = 5;
 
         private readonly Ship _ship1;
@@ -143,7 +143,7 @@ namespace Game
         private void DisplayCombatLog()
         {
             Console.WriteLine("\nCombat Log:");
-            foreach (var logEntry in GameWorld.Instance.combatLog.TakeLast(10))
+            foreach (var logEntry in GameWorld.Instance.combatLog.TakeLast(15))
             {
                 Console.WriteLine(logEntry);
             }
@@ -204,7 +204,6 @@ namespace Game
                 case 'I':
                     var inventory = _playerCharacter.InitializeInventory();
                     inventory.DisplayInventory();
-                    Console.ReadKey(true);
                     break;
                 case 'E':
                     _playerCharacter.ShowEquipmentMenu();
@@ -218,7 +217,8 @@ namespace Game
             }
         }
 
-       private void DisplayQuests()
+
+        private void DisplayQuests()
         {
             Console.Clear();
             Console.WriteLine("Current Quests:\n");

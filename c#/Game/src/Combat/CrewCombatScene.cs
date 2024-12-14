@@ -124,7 +124,8 @@ namespace Game
                     {
                         var entity = cell.Entities[0] as Character;
                         char symbol = entity == _playerCharacter ? '@' : 
-                                    _ship1.Crew.Contains(entity) ? 'A' : _ship2.Crew.Contains(entity) ? 'E' : 'X';
+                                    _ship1.Crew.Contains(entity) && entity.IsAlive ? 'A' : 
+                                    _ship2.Crew.Contains(entity) && entity.IsAlive ? 'E' : 'X';
                         Console.Write($"[{symbol}]");
                     }
                     else if (cell.Items.Count > 0)
@@ -169,6 +170,12 @@ namespace Game
 
         private void HandlePlayerInput()
         {
+            // If the current player character is dead, switch to the next available character
+            if (!_playerCharacter.IsAlive)
+            {
+                SwitchToNextAvailablePlayerCharacter();
+            }
+
             Console.WriteLine("\nActions:");
             Console.WriteLine("1-4: Select action strategy");
             Console.WriteLine("HJKL: Move");
@@ -177,7 +184,7 @@ namespace Game
             Console.WriteLine("I: View Inventory");
             Console.WriteLine("E: Open Equipment Menu");
             Console.WriteLine("Q: Quit combat");
-            Console.WriteLine("O: View Quests"); // New option added
+            Console.WriteLine("O: View Quests");
 
             char input = Console.ReadKey(true).KeyChar;
             if (char.IsDigit(input))
@@ -213,8 +220,46 @@ namespace Game
                     break;
                 case 'Q':
                     _ship1.Crew.Clear(); // Force end combat
+                    try
+                    {
+                        _playerCharacter = _ship1.Crew[0];
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        _playerCharacter = _ship2.Crew[0];
+                        GameWorld.Instance.ChangePlayerShip(_ship2);
+                    }
                     break;
             }
+        }
+
+
+        private void SwitchToNextAvailablePlayerCharacter()
+        {
+            // Determine which ship the player was originally on
+            List<Character> playerCrew = _ship1.Crew;
+            
+            // Find the next alive character in the crew
+            var nextCharacter = playerCrew.FirstOrDefault(c => c.IsAlive);
+            
+            if (nextCharacter != null)
+            {
+                _playerCharacter = nextCharacter;
+            }
+            else
+            {
+                // If no alive characters are left in the original ship, switch to the other ship
+                List<Character> otherCrew = playerCrew == _ship1.Crew ? _ship2.Crew : _ship1.Crew;
+                nextCharacter = otherCrew.FirstOrDefault(c => c.IsAlive);
+                
+                if (nextCharacter != null)
+                {
+                    _playerCharacter = nextCharacter;
+                    GameWorld.Instance.ChangePlayerShip(nextCharacter == _ship2.Crew[0] ? _ship2 : _ship1);
+                }
+            }
+            RenderCombatScene();
+
         }
 
 
@@ -452,6 +497,15 @@ namespace Game
             else if (_ship2.Crew.Count == 0)
             {
                 Console.WriteLine($"{_ship1.Name} is victorious!");
+            }
+            try
+            {
+                _playerCharacter = _ship1.Crew[0];
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                _playerCharacter = _ship2.Crew[0];
+                GameWorld.Instance.ChangePlayerShip(_ship2);
             }
             Console.WriteLine("\nPress any key to return to the main map...");
             Console.ReadKey(true);

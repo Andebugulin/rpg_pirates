@@ -339,30 +339,66 @@ namespace Game
                 HandleAIAction(character, _ship1.Crew);
             }
         }
-
         private void HandleAIAction(Character aiCharacter, List<Character> enemyCrew)
         {
-            var closestEnemy = FindClosestEnemy(aiCharacter, enemyCrew);
-            if (closestEnemy == null) return;
-
-            int distance = CalculateDistance(aiCharacter.Position, closestEnemy.Position);
-            var strategies = aiCharacter.GetAvailableStrategies();
-
-            if (ShouldHeal(aiCharacter, strategies))
-            {
-                PerformHealAction(aiCharacter);
-                return;
-            }
-
-            IActionStrategy selectedStrategy = ChooseStrategy(aiCharacter, distance, strategies);
-            if (selectedStrategy != null)
-            {
-                aiCharacter.SetStrategy(selectedStrategy);
-                if (aiCharacter.PerformAction(closestEnemy))
+                // First, check for nearby items to pick up
+                Item nearestItem = FindNearestItem(aiCharacter);
+                if (nearestItem != null)
+                {
+                    // Move towards the item
+                    MoveTowardsTarget(aiCharacter, nearestItem.Position);
+                    
+                    // If at the item's position, pick it up and try to equip
+                    if (aiCharacter.Position.X == nearestItem.Position.X && aiCharacter.Position.Y == nearestItem.Position.Y)
+                    {   
+                        var inventory = aiCharacter.InitializeInventory();
+                        if (inventory.AddItem(nearestItem))
+                        {
+                            _combatGrid[nearestItem.Position.X, nearestItem.Position.Y].Items.Remove(nearestItem);
+                            _availableItems.Remove(nearestItem);
+                           
+                            // Try to equip if it's a weapon
+                            if (nearestItem is Weapon weapon)
+                            {
+                                CharacterEquipmentExtensions.EquipItem(aiCharacter, weapon);
+                            }
+                        }
+                        return;
+                    }
                     return;
+                }
+
+                // Original enemy targeting logic
+                var closestEnemy = FindClosestEnemy(aiCharacter, enemyCrew);
+                if (closestEnemy == null) return;
+
+                int distance = CalculateDistance(aiCharacter.Position, closestEnemy.Position);
+                var strategies = aiCharacter.GetAvailableStrategies();
+
+                if (ShouldHeal(aiCharacter, strategies))
+                {
+                    PerformHealAction(aiCharacter);
+                    return;
+                }
+
+                IActionStrategy selectedStrategy = ChooseStrategy(aiCharacter, distance, strategies);
+                if (selectedStrategy != null)
+                {
+                    aiCharacter.SetStrategy(selectedStrategy);
+                    if (aiCharacter.PerformAction(closestEnemy))
+                        return;
+                }
+
+                MoveTowardsTarget(aiCharacter, closestEnemy.Position);
             }
 
-            MoveTowardsTarget(aiCharacter, closestEnemy.Position);
+            // New method to find the nearest item
+            private Item FindNearestItem(Character character)
+            {
+                return _availableItems
+                    .Where(item => !_combatGrid[item.Position.X, item.Position.Y].Entities.Any())
+                    .OrderBy(item => CalculateDistance(character.Position, item.Position))
+                    .FirstOrDefault();
         }
 
         private bool ShouldHeal(Character aiCharacter, List<IActionStrategy> strategies)

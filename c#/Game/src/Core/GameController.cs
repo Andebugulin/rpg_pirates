@@ -61,50 +61,6 @@ namespace Game
         }
     }
 
-    public class DefendCommand : ICommand
-        {
-        private readonly Character _character;
-        private bool _executed;
-        private ICharacterState _previousState;
-        private Item _equippedDefensiveItem;
-
-        public DefendCommand(Character character)
-            {
-            _character = character;
-            _executed = false;
-            _equippedDefensiveItem = _character.GetEquippedItem(EquipmentSlotType.Defensive);
-            }
-
-        public bool Execute()
-            {
-            if (_equippedDefensiveItem == null)
-                {
-                GameWorld.Instance.AddToCombatLog($"{_character.Name} cannot enter defensive stance without a defensive item!");
-                return false;
-                }
-
-            if (!_executed)
-                {
-                _previousState = _character.GetCurrentState();
-                _character.SetState(new DefendingState());
-                _executed = true;
-                GameWorld.Instance.AddToCombatLog($"{_character.Name} enters a defensive stance with {_equippedDefensiveItem.Name}!");
-                return true;
-                }
-            return false;
-            }
-
-        public void Undo()
-            {
-            if (_executed)
-                {
-                _character.SetState(_previousState);
-                _executed = false;
-                GameWorld.Instance.AddToCombatLog($"{_character.Name} leaves defensive stance");
-                }
-            }
-        }
-
     public class HealCommand : ICommand
     {
         private readonly Character _character;

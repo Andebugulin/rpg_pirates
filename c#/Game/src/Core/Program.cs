@@ -10,12 +10,14 @@ namespace Game
             GameWorld game = GameWorld.Instance;
             bool isRunning = true;
             
+            // define AI sihps as all that are not player ship
             List<ShipAI> shipAIs = game.entities
                 .OfType<Ship>()
                 .Where(s => s != game.playerShip)
                 .Select(s => new ShipAI(s))
                 .ToList();
             
+            // Time required to read an instructions
             Thread.Sleep(5000);
 
             while (isRunning)

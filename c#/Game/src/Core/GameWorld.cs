@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Game.Database;
+
 
 namespace Game
 {
@@ -64,20 +66,75 @@ namespace Game
         public const int MAX_LOG_ENTRIES = 5;
 
         private GameWorld()
-    {
-        width = 40;
-        height = 15;
-        TimeOfDay = "Day";
-        Weather = "Clear";
-        entities = new List<Entity>();
-        questManager = new QuestManager();
-        
-        // Initialize grid
-        grid = new Cell[width, height];
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-                grid[x, y] = new Cell();
-    }
+        {
+            width = 40;
+            height = 15;
+            TimeOfDay = "Day";
+            Weather = "Clear";
+            entities = new List<Entity>();
+            questManager = new QuestManager();
+            
+            // Initialize grid
+            grid = new Cell[width, height];
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    grid[x, y] = new Cell();
+        }
+
+        // Method to seed initial game data
+        public async Task SeedDatabaseAsync(GameDbContext context)
+        {
+            // Seed locations
+            if (!context.Locations.Any())
+            {
+                var locations = new List<LocationModel>
+                {
+                    new LocationModel 
+                    { 
+                        Name = "Port Royal", 
+                        Significance = 5, 
+                        PositionX = 10, 
+                        PositionY = 5 
+                    },
+                    new LocationModel 
+                    { 
+                        Name = "Tortuga", 
+                        Significance = 7, 
+                        PositionX = 15, 
+                        PositionY = 9 
+                    }
+                };
+                context.Locations.AddRange(locations);
+            }
+
+            // Seed ships
+            if (!context.Ships.Any())
+            {
+                var ships = new List<ShipModel>
+                {
+                    new ShipModel 
+                    { 
+                        Name = "Black Pearl", 
+                        Health = 100, 
+                        AttackPower = 50,
+                        PositionX = 20,
+                        PositionY = 8
+                    },
+                    new ShipModel 
+                    { 
+                        Name = "Flying Dutchman", 
+                        Health = 120, 
+                        AttackPower = 60,
+                        PositionX = 25,
+                        PositionY = 12
+                    }
+                };
+                context.Ships.AddRange(ships);
+            }
+
+            // Save changes
+            await context.SaveChangesAsync();
+        }
 
     // Separate method for world initialization
     private void InitializeWorld()

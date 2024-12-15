@@ -1,23 +1,41 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Game.Database;
 
 namespace Game
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+            // Setup Dependency Injection and Database
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            var serviceProvider = services.BuildServiceProvider();
+
+            // Ensure Database is created and seeded
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<GameDbContext>();
+                await dbContext.Database.MigrateAsync();
+            }
+
             Console.Clear();
             GameWorld game = GameWorld.Instance;
             bool isRunning = true;
             
-            // define AI sihps as all that are not player ship
+            // Define AI ships as all that are not player ship
             List<ShipAI> shipAIs = game.entities
                 .OfType<Ship>()
                 .Where(s => s != game.playerShip)
                 .Select(s => new ShipAI(s))
                 .ToList();
             
-            // Time required to read an instructions
+            // Time required to read instructions
             Thread.Sleep(5000);
 
             while (isRunning)
@@ -69,6 +87,22 @@ namespace Game
             }
 
             Console.WriteLine("Thanks for playing!");
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            // Build configuration
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            // Configure DbContext
+            services.AddDbContext<GameDbContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+            // Register repositories and services
+            services.AddScoped<GameRepository>();
         }
     }
 }
